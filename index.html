@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Equipamiento Crítico CESFAM</title>
+
+<style>
+body{
+font-family: Arial;
+margin:0;
+background:#f5f6fa;
+}
+
+.login{
+display:flex;
+justify-content:center;
+align-items:center;
+height:100vh;
+}
+
+.login-box{
+background:white;
+padding:30px;
+border-radius:8px;
+box-shadow:0 0 10px rgba(0,0,0,0.1);
+width:300px;
+}
+
+input{
+width:100%;
+padding:10px;
+margin-top:10px;
+}
+
+button{
+margin-top:10px;
+padding:10px;
+width:100%;
+background:#1976d2;
+color:white;
+border:none;
+cursor:pointer;
+}
+
+.app{
+display:none;
+}
+
+.sidebar{
+width:250px;
+background:#1e272e;
+color:white;
+position:fixed;
+height:100%;
+padding:15px;
+}
+
+.sidebar h2{
+margin-top:0;
+}
+
+.content{
+margin-left:260px;
+padding:20px;
+}
+
+.card{
+background:white;
+padding:15px;
+margin-bottom:10px;
+border-radius:6px;
+}
+
+.semaforo{
+display:flex;
+gap:10px;
+}
+
+.sem{
+padding:10px;
+border-radius:5px;
+color:white;
+cursor:pointer;
+}
+
+.rojo{background:#e53935}
+.amarillo{background:#fbc02d;color:black}
+.verde{background:#43a047}
+
+table{
+width:100%;
+border-collapse:collapse;
+background:white;
+}
+
+th,td{
+padding:10px;
+border-bottom:1px solid #ccc;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="login" id="login">
+<div class="login-box">
+<h3>Ingreso Sistema</h3>
+<input id="rut" placeholder="RUT">
+<input id="pass" type="password" placeholder="Contraseña">
+<button onclick="login()">Ingresar</button>
+</div>
+</div>
+
+<div class="app" id="app">
+
+<div class="sidebar">
+<h2>Equipos</h2>
+
+<input id="buscar" placeholder="Buscar..." onkeyup="filtrar()">
+
+<br><br>
+
+<div class="semaforo">
+<div class="sem rojo" onclick="filtrarEstado('rojo')" id="r">0</div>
+<div class="sem amarillo" onclick="filtrarEstado('amarillo')" id="a">0</div>
+<div class="sem verde" onclick="filtrarEstado('verde')" id="v">0</div>
+</div>
+
+</div>
+
+<div class="content">
+
+<h2>Equipamiento Crítico</h2>
+
+<table id="tabla">
+<thead>
+<tr>
+<th>Nombre</th>
+<th>Ubicación</th>
+<th>Vencimiento</th>
+<th>Estado</th>
+</tr>
+</thead>
+<tbody></tbody>
+</table>
+
+</div>
+
+</div>
+
+<script>
+
+const API = "https://script.google.com/macros/s/AKfycbzgwWOc0ZymXg6D_5yncrjhxkNRpEZVhGLYm0eC-fsOIMo01Tuoo_tQT7kHFUW6Qnwc/exec";
+
+let equipos = [];
+
+async function login(){
+
+const rut=document.getElementById("rut").value;
+const pass=document.getElementById("pass").value;
+
+const res=await fetch(API,{
+method:"POST",
+body:JSON.stringify({
+action:"login",
+rut:rut,
+password:pass
+})
+});
+
+const data=await res.json();
+
+if(data.success){
+document.getElementById("login").style.display="none";
+document.getElementById("app").style.display="block";
+cargar();
+}else{
+alert("Credenciales incorrectas");
+}
+
+}
+
+async function cargar(){
+
+const res=await fetch(API,{
+method:"POST",
+body:JSON.stringify({
+action:"getEquipos"
+})
+});
+
+const data=await res.json();
+equipos=data.equipos;
+
+render();
+
+}
+
+function render(){
+
+const tbody=document.querySelector("#tabla tbody");
+tbody.innerHTML="";
+
+let r=0,a=0,v=0;
+
+equipos.forEach(e=>{
+
+const estado=getEstado(e["Fecha vencimiento"]);
+
+if(estado=="rojo") r++;
+if(estado=="amarillo") a++;
+if(estado=="verde") v++;
+
+tbody.innerHTML+=`
+<tr>
+<td>${e["Nombre del equipo"]}</td>
+<td>${e["Ubicación"]}</td>
+<td>${formatear(e["Fecha vencimiento"])}</td>
+<td>${estado}</td>
+</tr>
+`;
+
+});
+
+document.getElementById("r").innerText=r;
+document.getElementById("a").innerText=a;
+document.getElementById("v").innerText=v;
+
+}
+
+function getEstado(fecha){
+
+const hoy=new Date();
+const f=new Date(fecha);
+
+const dias=(f-hoy)/(1000*60*60*24);
+
+if(dias<0) return "rojo";
+if(dias<=7) return "amarillo";
+return "verde";
+
+}
+
+function formatear(f){
+const d=new Date(f);
+return d.toLocaleDateString("es-CL");
+}
+
+function filtrar(){
+
+const txt=document.getElementById("buscar").value.toLowerCase();
+
+const filtrados=equipos.filter(e=>
+e["Nombre del equipo"].toLowerCase().includes(txt) ||
+e["Ubicación"].toLowerCase().includes(txt)
+);
+
+mostrar(filtrados);
+
+}
+
+function filtrarEstado(est){
+
+const filtrados=equipos.filter(e=>getEstado(e["Fecha vencimiento"])==est);
+mostrar(filtrados);
+
+}
+
+function mostrar(lista){
+
+const tbody=document.querySelector("#tabla tbody");
+tbody.innerHTML="";
+
+lista.forEach(e=>{
+
+const estado=getEstado(e["Fecha vencimiento"]);
+
+tbody.innerHTML+=`
+<tr>
+<td>${e["Nombre del equipo"]}</td>
+<td>${e["Ubicación"]}</td>
+<td>${formatear(e["Fecha vencimiento"])}</td>
+<td>${estado}</td>
+</tr>
+`;
+
+});
+
+}
+
+</script>
+
+</body>
+</html>
