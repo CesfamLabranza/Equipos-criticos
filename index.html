@@ -188,6 +188,7 @@ body{
 <div class="menu">
   <button onclick="setView('dashboard')">Inicio</button>
   <button onclick="setView('equipos')">Equipos críticos</button>
+  <button onclick="setView('equiposGenerales')">Equipos generales</button>
   <button class="admin-only" onclick="openNewEquipmentModal()">Nuevo equipo</button>
   <button onclick="setView('historial')">Historial</button>
 </div>
@@ -262,7 +263,14 @@ body{
           </table>
         </div>
       </section>
-
+      
+<section id="equiposGenerales" class="seccion" style="display:none;">
+    <div class="card">
+        <h2>Equipos generales</h2>
+        <p>Listado general de equipos no críticos.</p>
+    </div>
+</section>
+      
       <section id="historialView" class="panel hidden">
         <h2>Historial</h2>
         <div id="historyList"></div>
