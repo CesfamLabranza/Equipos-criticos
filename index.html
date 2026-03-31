@@ -16,30 +16,34 @@
       --warning:#eab308;
       --danger:#dc2626;
     }
-    *{box-sizing:border-box}
-body{
-  margin:0;
-  font-family:Arial,sans-serif;
-  background: linear-gradient(rgba(0,0,0,0.35), rgba(0,0,0,0.35)),
-              url('fondo.jpg') no-repeat center center fixed;
-  background-size: cover;
-  color:var(--text);
-}
-.login-logo{
-  position:absolute;
-  top:20px;
-  left:20px;
-  z-index:10;
-}
 
-.login-logo img{
-  width:80px;
-  height:80px;
-  object-fit:cover;
-  border-radius:50%;
-  box-shadow:0 6px 18px rgba(0,0,0,0.25);
-  background:transparent;
-}
+    *{box-sizing:border-box}
+
+    body{
+      margin:0;
+      font-family:Arial,sans-serif;
+      background: linear-gradient(rgba(0,0,0,0.35), rgba(0,0,0,0.35)),
+                  url('fondo.jpg') no-repeat center center fixed;
+      background-size: cover;
+      color:var(--text);
+    }
+
+    .login-logo{
+      position:absolute;
+      top:20px;
+      left:20px;
+      z-index:10;
+    }
+
+    .login-logo img{
+      width:80px;
+      height:80px;
+      object-fit:cover;
+      border-radius:50%;
+      box-shadow:0 6px 18px rgba(0,0,0,0.25);
+      background:transparent;
+    }
+
     .hidden{display:none!important}
     .login-screen{min-height:100vh;display:flex;justify-content:center;align-items:center;padding:24px}
     .login-card,.panel{background:#fff;border:1px solid var(--line);border-radius:16px;padding:24px}
@@ -50,65 +54,74 @@ body{
     .btn-primary{background:var(--primary);color:#fff}
     .btn-secondary{background:#eef2f7;color:var(--text)}
     .btn-danger{background:var(--danger);color:#fff}
-.app{
-  min-height:100vh;
-  display:grid;
-  grid-template-columns:300px 1fr;
-}
 
-.sidebar{
-  background:#0f172a;
-  color:#fff;
-  padding:20px;
-  display:flex;
-  flex-direction:column;
-  gap:16px;
-  position:sticky;
-  top:0;
-  height:100vh;
-}
+    .app{
+      min-height:100vh;
+      display:grid;
+      grid-template-columns:300px 1fr;
+    }
 
-.main{
-  padding:24px;
-  display:flex;
-  flex-direction:column;
-  gap:18px;
-  min-height:100vh;
-}
-.menu{
-  display:flex;
-  flex-direction:column;
-  gap:10px;
-}
-.menu button{
-  width:100%;
-  text-align:left;
-  background:rgba(255,255,255,.06);
-  color:#fff;
-  border:1px solid rgba(255,255,255,.08);
-  padding:12px;
-  border-radius:10px;
-  cursor:pointer;
-  font-size:14px;
-  font-weight:500;
-}
-.menu button:hover{
-  background:rgba(255,255,255,.12);
-}
-.summary-box{
-  margin-top:auto;
-  background:rgba(255,255,255,.06);
-  border-radius:14px;
-  padding:14px;
-}
-    .summary-item{display:flex;justify-content:space-between;align-items:center;padding:10px;border-radius:10px;background:rgba(255,255,255,.06);margin-bottom:10px;cursor:pointer}
+    .sidebar{
+      background:#0f172a;
+      color:#fff;
+      padding:20px;
+      display:flex;
+      flex-direction:column;
+      gap:16px;
+      position:sticky;
+      top:0;
+      height:100vh;
+    }
+
     .main{
-  padding:24px;
-  display:flex;
-  flex-direction:column;
-  gap:18px;
-  min-height:100vh;
-}
+      padding:24px;
+      display:flex;
+      flex-direction:column;
+      gap:18px;
+      min-height:100vh;
+    }
+
+    .menu{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+
+    .menu button{
+      width:100%;
+      text-align:left;
+      background:rgba(255,255,255,.06);
+      color:#fff;
+      border:1px solid rgba(255,255,255,.08);
+      padding:12px;
+      border-radius:10px;
+      cursor:pointer;
+      font-size:14px;
+      font-weight:500;
+    }
+
+    .menu button:hover{
+      background:rgba(255,255,255,.12);
+    }
+
+    .summary-box{
+      margin-top:auto;
+      background:rgba(255,255,255,.06);
+      border-radius:14px;
+      padding:14px;
+    }
+
+    .summary-item{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      padding:10px;
+      border-radius:10px;
+      background:rgba(255,255,255,.06);
+      margin-bottom:10px;
+      cursor:pointer;
+    }
+
     .topbar{display:flex;justify-content:space-between;align-items:center}
     .toolbar{display:grid;grid-template-columns:1.6fr 1fr auto;gap:12px;margin-bottom:14px}
     .cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
@@ -131,49 +144,55 @@ body{
     .grid-2{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
     .modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:18px}
     .error-text{color:var(--danger);font-size:13px;margin-top:8px}
-.spinner {
-  width: 28px;
-  height: 28px;
-  border: 4px solid #e5e7eb;
-  border-top: 4px solid #2563eb;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin: auto;
-}
 
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
+    .spinner {
+      width: 28px;
+      height: 28px;
+      border: 4px solid #e5e7eb;
+      border-top: 4px solid #2563eb;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: auto;
+    }
 
-@media (max-width:1100px){
-  .app{grid-template-columns:1fr}
-  .cards,.toolbar,.grid-2{grid-template-columns:1fr}
-}
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    @media (max-width:1100px){
+      .app{grid-template-columns:1fr}
+      .cards,.toolbar,.grid-2{grid-template-columns:1fr}
     }
   </style>
 </head>
 <body>
   <div id="loginScreen" class="login-screen">
     <div class="login-logo">
-  <img src="logo.jpg" alt="CESFAM Labranza">
-</div>
+      <img src="logo.jpg" alt="CESFAM Labranza">
+    </div>
+
     <div class="login-card">
       <h2>Control de Equipamiento Crítico</h2>
       <p>Ingrese su RUT y contraseña.</p>
+
       <div style="margin-bottom:12px;">
         <label>RUT</label>
         <input id="loginRut" type="text" />
       </div>
+
       <div style="margin-bottom:12px;">
         <label>Contraseña</label>
         <input id="loginPassword" type="password" />
       </div>
+
       <button class="btn btn-primary" style="width:100%;" onclick="login()">Ingresar</button>
+
       <div id="loginLoading" class="hidden" style="text-align:center;margin-top:12px;">
-  <div class="spinner"></div>
-  <div style="margin-top:6px;font-size:13px;color:#6b7280;">Validando credenciales...</div>
-</div>
+        <div class="spinner"></div>
+        <div style="margin-top:6px;font-size:13px;color:#6b7280;">Validando credenciales...</div>
+      </div>
+
       <div id="loginError" class="error-text hidden"></div>
     </div>
   </div>
@@ -185,13 +204,13 @@ body{
         <p style="color:#c8d2e3;">CESFAM</p>
       </div>
 
-<div class="menu">
-  <button onclick="setView('dashboard')">Inicio</button>
-  <button onclick="setView('equipos')">Equipos críticos</button>
-  <button onclick="setView('equiposGenerales')">Equipos generales</button>
-  <button class="admin-only" onclick="openNewEquipmentModal()">Nuevo equipo</button>
-  <button onclick="setView('historial')">Historial</button>
-</div>
+      <div class="menu">
+        <button onclick="setView('dashboard')">Inicio</button>
+        <button onclick="setView('equipos')">Equipos críticos</button>
+        <button onclick="setView('equiposGenerales')">Equipos generales</button>
+        <button class="admin-only" onclick="openNewEquipmentModal()">Nuevo equipo</button>
+        <button onclick="setView('historial')">Historial</button>
+      </div>
 
       <div class="summary-box">
         <h3>Resumen semáforos</h3>
@@ -251,6 +270,7 @@ body{
                 <th>Categoría</th>
                 <th>Ubicación</th>
                 <th>Responsable</th>
+                <th>Tipo</th>
                 <th>Fecha mantención</th>
                 <th>Próxima atención</th>
                 <th>Primer día hábil</th>
@@ -263,14 +283,40 @@ body{
           </table>
         </div>
       </section>
-      
-<section id="equiposGeneralesView" class="panel hidden">
-  <h2>Equipos generales</h2>
-  <div class="card">
-    Listado general de equipos no críticos.
-  </div>
-</section>
-      
+
+      <section id="equiposGeneralesView" class="panel hidden">
+        <div class="toolbar">
+          <input type="text" id="searchInputGeneral" placeholder="Buscar por nombre, categoría, ubicación o responsable" oninput="renderEquipmentTable()" />
+          <select id="sortFilterGeneral" onchange="renderEquipmentTable()">
+            <option value="nombreAsc">Ordenar por nombre</option>
+            <option value="estado">Ordenar por semáforo</option>
+            <option value="proxima">Ordenar por próxima atención</option>
+          </select>
+          <button class="btn btn-primary admin-only" onclick="openNewEquipmentModal()">+ Nuevo equipo</button>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Equipo</th>
+                <th>Categoría</th>
+                <th>Ubicación</th>
+                <th>Responsable</th>
+                <th>Tipo</th>
+                <th>Fecha mantención</th>
+                <th>Próxima atención</th>
+                <th>Primer día hábil</th>
+                <th>Último día hábil</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="equipmentTableBodyGeneral"></tbody>
+          </table>
+        </div>
+      </section>
+
       <section id="historialView" class="panel hidden">
         <h2>Historial</h2>
         <div id="historyList"></div>
@@ -283,27 +329,33 @@ body{
       <h3 id="modalTitle">Nuevo equipo</h3>
       <form id="equipmentForm" onsubmit="saveEquipment(event)">
         <input type="hidden" id="equipmentId" />
+
         <div class="grid-2">
           <div>
             <label>Nombre del equipo</label>
             <input type="text" id="equipmentName" required />
           </div>
+
           <div>
             <label>Categoría</label>
             <input type="text" id="equipmentCategory" required />
           </div>
+
           <div>
             <label>Ubicación</label>
             <input type="text" id="equipmentLocation" required />
           </div>
+
           <div>
             <label>Responsable</label>
             <input type="text" id="equipmentResponsible" required />
           </div>
+
           <div>
             <label>Empresa o técnico</label>
             <input type="text" id="equipmentProvider" />
           </div>
+
           <div>
             <label>Frecuencia</label>
             <select id="equipmentFrequency">
@@ -314,17 +366,20 @@ body{
               <option value="Otra">Otra</option>
             </select>
           </div>
+
           <div>
-  <label>Tipo de equipo</label>
-  <select id="equipmentType" required>
-    <option value="critico">Crítico</option>
-    <option value="general">General</option>
-  </select>
-</div>
+            <label>Tipo de equipo</label>
+            <select id="equipmentType" required>
+              <option value="critico">Crítico</option>
+              <option value="general">General</option>
+            </select>
+          </div>
+
           <div>
             <label>Fecha mantención</label>
             <input type="date" id="maintenanceDate" required />
           </div>
+
           <div>
             <label>Próxima atención</label>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
@@ -346,16 +401,20 @@ body{
               <input type="number" id="nextAttentionYear" min="2025" max="2100" placeholder="Año" required />
             </div>
           </div>
+
           <div style="grid-column:1/-1;">
             <label>Correos alerta</label>
             <textarea id="alertEmails"></textarea>
           </div>
+
           <div style="grid-column:1/-1;">
             <label>Observaciones</label>
             <textarea id="equipmentNotes"></textarea>
           </div>
         </div>
+
         <div id="formError" class="error-text hidden"></div>
+
         <div class="modal-actions">
           <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
           <button type="submit" class="btn btn-primary">Guardar</button>
@@ -373,50 +432,50 @@ body{
     let activeView = 'dashboard';
     let statusFilter = 'todos';
 
-async function login() {
-  const rut = document.getElementById('loginRut').value.trim();
-  const password = document.getElementById('loginPassword').value.trim();
-  const errorEl = document.getElementById('loginError');
-  const loadingEl = document.getElementById('loginLoading');
+    async function login() {
+      const rut = document.getElementById('loginRut').value.trim();
+      const password = document.getElementById('loginPassword').value.trim();
+      const errorEl = document.getElementById('loginError');
+      const loadingEl = document.getElementById('loginLoading');
 
-  errorEl.classList.add('hidden');
-  loadingEl.classList.remove('hidden');
+      errorEl.classList.add('hidden');
+      loadingEl.classList.remove('hidden');
 
-  try {
-    const res = await fetch(API, {
-      method: 'POST',
-      body: JSON.stringify({ action: 'login', rut, password })
-    });
+      try {
+        const res = await fetch(API, {
+          method: 'POST',
+          body: JSON.stringify({ action: 'login', rut, password })
+        });
 
-    const data = await res.json();
+        const data = await res.json();
 
-    if (!data.success) {
-      loadingEl.classList.add('hidden');
-      errorEl.textContent = data.message || 'Credenciales incorrectas.';
-      errorEl.classList.remove('hidden');
-      return;
+        if (!data.success) {
+          loadingEl.classList.add('hidden');
+          errorEl.textContent = data.message || 'Credenciales incorrectas.';
+          errorEl.classList.remove('hidden');
+          return;
+        }
+
+        currentUser = data.user;
+
+        document.getElementById('loginScreen').classList.add('hidden');
+        document.getElementById('app').classList.remove('hidden');
+
+        document.getElementById('loggedUserName').textContent =
+          `${currentUser.nombre} ${currentUser.apellidos}`;
+
+        document.getElementById('loggedUserMeta').textContent =
+          `${currentUser.profesion} | ${currentUser.establecimiento} | ${currentUser.rol}`;
+
+        updateAdminVisibility();
+        await loadData();
+
+      } catch (error) {
+        loadingEl.classList.add('hidden');
+        errorEl.textContent = 'No fue posible conectar con el sistema.';
+        errorEl.classList.remove('hidden');
+      }
     }
-
-    currentUser = data.user;
-
-    document.getElementById('loginScreen').classList.add('hidden');
-    document.getElementById('app').classList.remove('hidden');
-
-    document.getElementById('loggedUserName').textContent =
-      `${currentUser.nombre} ${currentUser.apellidos}`;
-
-    document.getElementById('loggedUserMeta').textContent =
-      `${currentUser.profesion} | ${currentUser.establecimiento} | ${currentUser.rol}`;
-
-    updateAdminVisibility();
-    await loadData();
-
-  } catch (error) {
-    loadingEl.classList.add('hidden');
-    errorEl.textContent = 'No fue posible conectar con el sistema.';
-    errorEl.classList.remove('hidden');
-  }
-}
 
     function logout() {
       location.reload();
@@ -454,7 +513,10 @@ async function login() {
 
     function renderSummary() {
       const counts = { verde: 0, amarillo: 0, rojo: 0 };
-      equipments.forEach(e => counts[e.estado] = (counts[e.estado] || 0) + 1);
+
+      equipments.forEach(e => {
+        counts[e.estado] = (counts[e.estado] || 0) + 1;
+      });
 
       document.getElementById('sumTotal').textContent = equipments.length;
       document.getElementById('sumGreen').textContent = counts.verde || 0;
@@ -464,7 +526,10 @@ async function login() {
 
     function renderDashboard() {
       const counts = { verde: 0, amarillo: 0, rojo: 0 };
-      equipments.forEach(e => counts[e.estado] = (counts[e.estado] || 0) + 1);
+
+      equipments.forEach(e => {
+        counts[e.estado] = (counts[e.estado] || 0) + 1;
+      });
 
       document.getElementById('cardTotal').textContent = equipments.length;
       document.getElementById('cardGreen').textContent = counts.verde || 0;
@@ -473,15 +538,32 @@ async function login() {
     }
 
     function renderEquipmentTable() {
-      const tbody = document.getElementById('equipmentTableBody');
-      const search = normalizeText(document.getElementById('searchInput')?.value || '');
-      const sort = document.getElementById('sortFilter')?.value || 'nombreAsc';
+      const tbody = activeView === 'equiposGenerales'
+        ? document.getElementById('equipmentTableBodyGeneral')
+        : document.getElementById('equipmentTableBody');
+
+      const search = normalizeText(
+        activeView === 'equiposGenerales'
+          ? (document.getElementById('searchInputGeneral')?.value || '')
+          : (document.getElementById('searchInput')?.value || '')
+      );
+
+      const sort = activeView === 'equiposGenerales'
+        ? (document.getElementById('sortFilterGeneral')?.value || 'nombreAsc')
+        : (document.getElementById('sortFilter')?.value || 'nombreAsc');
 
       let items = equipments.filter(e => {
+        const tipo = String(e.tipoEquipo || 'critico').toLowerCase();
+
+        const coincideVista =
+          (activeView === 'equipos' && tipo === 'critico') ||
+          (activeView === 'equiposGenerales' && tipo === 'general');
+
         const text = normalizeText(`${e.nombre} ${e.categoria} ${e.ubicacion} ${e.responsable}`);
         const matchesSearch = !search || text.includes(search);
         const matchesStatus = statusFilter === 'todos' || e.estado === statusFilter;
-        return matchesSearch && matchesStatus;
+
+        return coincideVista && matchesSearch && matchesStatus;
       });
 
       items.sort((a, b) => {
@@ -489,23 +571,36 @@ async function login() {
           const rank = { rojo: 1, amarillo: 2, verde: 3 };
           return rank[a.estado] - rank[b.estado];
         }
-        if (sort === 'proxima') return (a.proximaAtencion || '').localeCompare(b.proximaAtencion || '');
+        if (sort === 'proxima') {
+          return (a.proximaAtencion || '').localeCompare(b.proximaAtencion || '');
+        }
         return (a.nombre || '').localeCompare(b.nombre || '', 'es');
       });
 
+      if (!tbody) return;
+
       if (!items.length) {
-        tbody.innerHTML = `<tr><td colspan="10">No hay equipos para mostrar.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="11">No hay equipos para mostrar.</td></tr>`;
         return;
       }
 
       tbody.innerHTML = items.map(item => {
-        const badgeClass = item.estado === 'verde' ? 'status-green' : item.estado === 'amarillo' ? 'status-yellow' : 'status-red';
+        const badgeClass =
+          item.estado === 'verde' ? 'status-green' :
+          item.estado === 'amarillo' ? 'status-yellow' :
+          'status-red';
+
+        const tipoTexto = String(item.tipoEquipo || 'critico').toLowerCase() === 'general'
+          ? 'General'
+          : 'Crítico';
+
         return `
           <tr>
             <td><strong>${escapeHtml(item.nombre)}</strong></td>
             <td>${escapeHtml(item.categoria)}</td>
             <td>${escapeHtml(item.ubicacion)}</td>
             <td>${escapeHtml(item.responsable)}</td>
+            <td>${escapeHtml(tipoTexto)}</td>
             <td>${escapeHtml(item.fechaMantencion)}</td>
             <td>${escapeHtml(item.proximaAtencion)}</td>
             <td>${escapeHtml(item.primerDiaHabil)}</td>
@@ -525,6 +620,7 @@ async function login() {
 
     function renderHistory() {
       const container = document.getElementById('historyList');
+
       if (!historyItems.length) {
         container.innerHTML = '<div>No existen registros.</div>';
         return;
@@ -541,22 +637,26 @@ async function login() {
 
     function setView(view) {
       activeView = view;
+
       document.getElementById('dashboardView').classList.add('hidden');
       document.getElementById('equiposView').classList.add('hidden');
       document.getElementById('equiposGeneralesView').classList.add('hidden');
       document.getElementById('historialView').classList.add('hidden');
-      
 
-const titles = {
-  dashboard: ['Inicio', 'Resumen general del sistema.'],
-  equipos: ['Equipos críticos', 'Listado general de equipos.'],
-  equiposGenerales: ['Equipos generales', 'Listado general de equipos no críticos.'],
-  historial: ['Historial', 'Registro de acciones realizadas.']
-};
+      const titles = {
+        dashboard: ['Inicio', 'Resumen general del sistema.'],
+        equipos: ['Equipos críticos', 'Listado general de equipos críticos.'],
+        equiposGenerales: ['Equipos generales', 'Listado general de equipos no críticos.'],
+        historial: ['Historial', 'Registro de acciones realizadas.']
+      };
 
       document.getElementById('pageTitle').textContent = titles[view][0];
       document.getElementById('pageSubtitle').textContent = titles[view][1];
       document.getElementById(view + 'View').classList.remove('hidden');
+
+      if (view === 'equipos' || view === 'equiposGenerales') {
+        renderEquipmentTable();
+      }
     }
 
     function applyStatusFilter(status) {
@@ -569,6 +669,7 @@ const titles = {
       document.getElementById('modalTitle').textContent = 'Nuevo equipo';
       document.getElementById('equipmentForm').reset();
       document.getElementById('equipmentId').value = '';
+      document.getElementById('equipmentType').value = 'critico';
       document.getElementById('formError').classList.add('hidden');
       document.getElementById('modalBackdrop').classList.remove('hidden');
     }
@@ -584,11 +685,17 @@ const titles = {
     function viewEquipment(id) {
       const item = equipments.find(x => x.id === id);
       if (!item) return;
+
+      const tipoTexto = String(item.tipoEquipo || 'critico').toLowerCase() === 'general'
+        ? 'General'
+        : 'Crítico';
+
       alert(
         `Nombre: ${item.nombre}\n` +
         `Categoría: ${item.categoria}\n` +
         `Ubicación: ${item.ubicacion}\n` +
         `Responsable: ${item.responsable}\n` +
+        `Tipo: ${tipoTexto}\n` +
         `Fecha mantención: ${item.fechaMantencion}\n` +
         `Próxima atención: ${item.proximaAtencion}\n` +
         `Primer día hábil: ${item.primerDiaHabil}\n` +
@@ -609,7 +716,9 @@ const titles = {
       document.getElementById('equipmentResponsible').value = item.responsable || '';
       document.getElementById('equipmentProvider').value = item.empresaOTecnico || '';
       document.getElementById('equipmentFrequency').value = item.frecuencia || 'Mensual';
+      document.getElementById('equipmentType').value = item.tipoEquipo || 'critico';
       document.getElementById('maintenanceDate').value = toISODate(item.fechaMantencion);
+
       const parts = (item.proximaAtencion || '').split('/');
       document.getElementById('nextAttentionMonth').value = parts[0] || '';
       document.getElementById('nextAttentionYear').value = parts[1] || '';
@@ -635,6 +744,7 @@ const titles = {
         'Responsable': document.getElementById('equipmentResponsible').value.trim(),
         'Empresa o técnico': document.getElementById('equipmentProvider').value.trim(),
         'Frecuencia': document.getElementById('equipmentFrequency').value.trim(),
+        'Tipo de equipo': document.getElementById('equipmentType').value,
         'Fecha mantención': document.getElementById('maintenanceDate').value,
         'Próxima atención': proximaAtencion,
         'Correos alerta': document.getElementById('alertEmails').value.trim(),
@@ -651,6 +761,7 @@ const titles = {
       });
 
       const data = await res.json();
+
       if (!data.success) {
         const errorEl = document.getElementById('formError');
         errorEl.textContent = data.message || 'No fue posible guardar.';
@@ -660,7 +771,10 @@ const titles = {
 
       closeModal();
       await loadData();
-      setView('equipos');
+
+      const tipoGuardado = payload['Tipo de equipo'] === 'general' ? 'equiposGenerales' : 'equipos';
+      setView(tipoGuardado);
+
       alert(data.message);
     }
 
@@ -677,6 +791,7 @@ const titles = {
       });
 
       const data = await res.json();
+
       if (!data.success) {
         alert(data.message || 'No fue posible eliminar.');
         return;
