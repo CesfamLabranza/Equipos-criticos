@@ -59,6 +59,20 @@
     @media (max-width:1100px){
       .app{grid-template-columns:1fr}
       .cards,.toolbar,.grid-2{grid-template-columns:1fr}
+      .spinner {
+  width: 28px;
+  height: 28px;
+  border: 4px solid #e5e7eb;
+  border-top: 4px solid #2563eb;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: auto;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
     }
   </style>
 </head>
@@ -76,6 +90,10 @@
         <input id="loginPassword" type="password" />
       </div>
       <button class="btn btn-primary" style="width:100%;" onclick="login()">Ingresar</button>
+      <div id="loginLoading" class="hidden" style="text-align:center;margin-top:12px;">
+  <div class="spinner"></div>
+  <div style="margin-top:6px;font-size:13px;color:#6b7280;">Validando credenciales...</div>
+</div>
       <div id="loginError" class="error-text hidden"></div>
     </div>
   </div>
@@ -260,39 +278,50 @@
     let activeView = 'dashboard';
     let statusFilter = 'todos';
 
-    async function login() {
-      const rut = document.getElementById('loginRut').value.trim();
-      const password = document.getElementById('loginPassword').value.trim();
-      const errorEl = document.getElementById('loginError');
-      errorEl.classList.add('hidden');
+async function login() {
+  const rut = document.getElementById('loginRut').value.trim();
+  const password = document.getElementById('loginPassword').value.trim();
+  const errorEl = document.getElementById('loginError');
+  const loadingEl = document.getElementById('loginLoading');
 
-      try {
-        const res = await fetch(API, {
-          method: 'POST',
-          body: JSON.stringify({ action: 'login', rut, password })
-        });
-        const data = await res.json();
+  errorEl.classList.add('hidden');
+  loadingEl.classList.remove('hidden');
 
-        if (!data.success) {
-          errorEl.textContent = data.message || 'Credenciales incorrectas.';
-          errorEl.classList.remove('hidden');
-          return;
-        }
+  try {
+    const res = await fetch(API, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'login', rut, password })
+    });
 
-        currentUser = data.user;
-        document.getElementById('loginScreen').classList.add('hidden');
-        document.getElementById('app').classList.remove('hidden');
+    const data = await res.json();
 
-        document.getElementById('loggedUserName').textContent = `${currentUser.nombre} ${currentUser.apellidos}`;
-        document.getElementById('loggedUserMeta').textContent = `${currentUser.profesion} | ${currentUser.establecimiento} | ${currentUser.rol}`;
-
-        updateAdminVisibility();
-        await loadData();
-      } catch (error) {
-        errorEl.textContent = 'No fue posible conectar con el sistema.';
-        errorEl.classList.remove('hidden');
-      }
+    if (!data.success) {
+      loadingEl.classList.add('hidden');
+      errorEl.textContent = data.message || 'Credenciales incorrectas.';
+      errorEl.classList.remove('hidden');
+      return;
     }
+
+    currentUser = data.user;
+
+    document.getElementById('loginScreen').classList.add('hidden');
+    document.getElementById('app').classList.remove('hidden');
+
+    document.getElementById('loggedUserName').textContent =
+      `${currentUser.nombre} ${currentUser.apellidos}`;
+
+    document.getElementById('loggedUserMeta').textContent =
+      `${currentUser.profesion} | ${currentUser.establecimiento} | ${currentUser.rol}`;
+
+    updateAdminVisibility();
+    await loadData();
+
+  } catch (error) {
+    loadingEl.classList.add('hidden');
+    errorEl.textContent = 'No fue posible conectar con el sistema.';
+    errorEl.classList.remove('hidden');
+  }
+}
 
     function logout() {
       location.reload();
