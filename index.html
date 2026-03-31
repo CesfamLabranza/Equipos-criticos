@@ -264,11 +264,11 @@ body{
         </div>
       </section>
       
-<section id="equiposGenerales" class="seccion" style="display:none;">
-    <div class="card">
-        <h2>Equipos generales</h2>
-        <p>Listado general de equipos no críticos.</p>
-    </div>
+<section id="equiposGeneralesView" class="panel hidden">
+  <h2>Equipos generales</h2>
+  <div class="card">
+    Listado general de equipos no críticos.
+  </div>
 </section>
       
       <section id="historialView" class="panel hidden">
@@ -536,11 +536,14 @@ async function login() {
       activeView = view;
       document.getElementById('dashboardView').classList.add('hidden');
       document.getElementById('equiposView').classList.add('hidden');
+      document.getElementById('equiposGeneralesView').classList.add('hidden');
       document.getElementById('historialView').classList.add('hidden');
+      
 
 const titles = {
   dashboard: ['Inicio', 'Resumen general del sistema.'],
   equipos: ['Equipos críticos', 'Listado general de equipos.'],
+  equiposGenerales: ['Equipos generales', 'Listado general de equipos no críticos.'],
   historial: ['Historial', 'Registro de acciones realizadas.']
 };
 
