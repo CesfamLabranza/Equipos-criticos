@@ -25,18 +25,20 @@ body{
   background-size: cover;
   color:var(--text);
 }
-    .login-logo{
+.login-logo{
   position:absolute;
   top:20px;
   left:20px;
+  z-index:10;
 }
 
 .login-logo img{
-  width:70px;
-  height:70px;
+  width:80px;
+  height:80px;
   object-fit:cover;
   border-radius:50%;
   box-shadow:0 6px 18px rgba(0,0,0,0.25);
+  background:transparent;
 }
     .hidden{display:none!important}
     .login-screen{min-height:100vh;display:flex;justify-content:center;align-items:center;padding:24px}
@@ -76,9 +78,15 @@ body{
     .grid-2{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
     .modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:18px}
     .error-text{color:var(--danger);font-size:13px;margin-top:8px}
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
 @media (max-width:1100px){
   .app{grid-template-columns:1fr}
   .cards,.toolbar,.grid-2{grid-template-columns:1fr}
+}
   .spinner {
   width: 28px;
   height: 28px;
@@ -99,7 +107,7 @@ body{
 <body>
   <div id="loginScreen" class="login-screen">
     <div class="login-logo">
-  <img src="logo.png" alt="CESFAM Labranza">
+  <img src="logo.jpg" alt="CESFAM Labranza">
 </div>
     <div class="login-card">
       <h2>Control de Equipamiento Crítico</h2>
