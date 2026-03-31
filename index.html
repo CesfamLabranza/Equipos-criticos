@@ -50,10 +50,40 @@ body{
     .btn-primary{background:var(--primary);color:#fff}
     .btn-secondary{background:#eef2f7;color:var(--text)}
     .btn-danger{background:var(--danger);color:#fff}
-    .app{min-height:100vh;display:grid;grid-template-columns:300px 1fr}
-    .sidebar{background:#0f172a;color:#fff;padding:20px;display:flex;flex-direction:column;gap:16px}
-    .menu button{width:100%;margin-bottom:10px;text-align:left;background:rgba(255,255,255,.06);color:#fff;border:1px solid rgba(255,255,255,.08);padding:12px;border-radius:10px;cursor:pointer}
-    .summary-box{margin-top:auto;background:rgba(255,255,255,.06);border-radius:14px;padding:14px}
+    .app{
+  min-height:100vh;
+  display:grid;
+  grid-template-columns:300px 1fr;
+}
+
+.sidebar{
+  background:#0f172a;
+  color:#fff;
+  padding:20px;
+  display:flex;
+  flex-direction:column;
+  gap:16px;
+  position:sticky;
+  top:0;
+  height:100vh;
+}
+
+.main{
+  padding:24px;
+  display:flex;
+  flex-direction:column;
+  gap:18px;
+  min-height:100vh;
+}
+
+.summary-box{
+  margin-top:auto;
+  background:rgba(255,255,255,.06);
+  border-radius:14px;
+  padding:14px;
+  position:sticky;
+  bottom:20px;
+}
     .summary-item{display:flex;justify-content:space-between;align-items:center;padding:10px;border-radius:10px;background:rgba(255,255,255,.06);margin-bottom:10px;cursor:pointer}
     .main{padding:24px;display:flex;flex-direction:column;gap:18px}
     .topbar{display:flex;justify-content:space-between;align-items:center}
