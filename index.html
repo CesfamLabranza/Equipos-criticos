@@ -17,7 +17,13 @@
       --danger:#dc2626;
     }
     *{box-sizing:border-box}
-    body{margin:0;font-family:Arial,sans-serif;background:var(--bg);color:var(--text)}
+    body{
+  margin:0;
+  font-family:Arial,sans-serif;
+  background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)),
+              url('fondo.jpg') no-repeat center center fixed;
+  background-size: cover;
+  color:var(--text);
     .hidden{display:none!important}
     .login-screen{min-height:100vh;display:flex;justify-content:center;align-items:center;padding:24px}
     .login-card,.panel{background:#fff;border:1px solid var(--line);border-radius:16px;padding:24px}
