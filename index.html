@@ -50,7 +50,7 @@ body{
     .btn-primary{background:var(--primary);color:#fff}
     .btn-secondary{background:#eef2f7;color:var(--text)}
     .btn-danger{background:var(--danger);color:#fff}
-    .app{
+.app{
   min-height:100vh;
   display:grid;
   grid-template-columns:300px 1fr;
@@ -75,17 +75,40 @@ body{
   gap:18px;
   min-height:100vh;
 }
-
+.menu{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+.menu button{
+  width:100%;
+  text-align:left;
+  background:rgba(255,255,255,.06);
+  color:#fff;
+  border:1px solid rgba(255,255,255,.08);
+  padding:12px;
+  border-radius:10px;
+  cursor:pointer;
+  font-size:14px;
+  font-weight:500;
+}
+.menu button:hover{
+  background:rgba(255,255,255,.12);
+}
 .summary-box{
   margin-top:auto;
   background:rgba(255,255,255,.06);
   border-radius:14px;
   padding:14px;
-  position:sticky;
-  bottom:20px;
 }
     .summary-item{display:flex;justify-content:space-between;align-items:center;padding:10px;border-radius:10px;background:rgba(255,255,255,.06);margin-bottom:10px;cursor:pointer}
-    .main{padding:24px;display:flex;flex-direction:column;gap:18px}
+    .main{
+  padding:24px;
+  display:flex;
+  flex-direction:column;
+  gap:18px;
+  min-height:100vh;
+}
     .topbar{display:flex;justify-content:space-between;align-items:center}
     .toolbar{display:grid;grid-template-columns:1.6fr 1fr auto;gap:12px;margin-bottom:14px}
     .cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
@@ -162,12 +185,12 @@ body{
         <p style="color:#c8d2e3;">CESFAM</p>
       </div>
 
-      <div class="menu">
-        <button onclick="setView('dashboard')">Inicio</button>
-        <button onclick="setView('equipos')">Equipos críticos</button>
-        <button class="admin-only" onclick="openNewEquipmentModal()">Nuevo equipo</button>
-        <button onclick="setView('historial')">Historial</button>
-      </div>
+<div class="menu">
+  <button onclick="setView('dashboard')">Inicio</button>
+  <button onclick="setView('equipos')">Equipos críticos</button>
+  <button class="admin-only" onclick="openNewEquipmentModal()">Nuevo equipo</button>
+  <button onclick="setView('historial')">Historial</button>
+</div>
 
       <div class="summary-box">
         <h3>Resumen semáforos</h3>
