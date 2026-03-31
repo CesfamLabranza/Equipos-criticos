@@ -106,7 +106,7 @@
       </div>
 
       <div class="menu">
-        <button onclick="setView('dashboard')">Dashboard</button>
+        <button onclick="setView('dashboard')">Inicio</button>
         <button onclick="setView('equipos')">Equipos críticos</button>
         <button class="admin-only" onclick="openNewEquipmentModal()">Nuevo equipo</button>
         <button onclick="setView('historial')">Historial</button>
@@ -132,7 +132,7 @@
     <main class="main">
       <div class="panel topbar">
         <div>
-          <h1 id="pageTitle" style="margin:0;">Dashboard</h1>
+          <h1 id="pageTitle" style="margin:0;">Inicio</h1>
           <p id="pageSubtitle" style="margin:8px 0 0;color:#6b7280;">Visualización general del sistema.</p>
         </div>
         <div style="text-align:right;">
@@ -450,11 +450,11 @@ async function login() {
       document.getElementById('equiposView').classList.add('hidden');
       document.getElementById('historialView').classList.add('hidden');
 
-      const titles = {
-        dashboard: ['Dashboard', 'Visualización general del sistema.'],
-        equipos: ['Equipos críticos', 'Listado general de equipos.'],
-        historial: ['Historial', 'Registro de acciones realizadas.']
-      };
+const titles = {
+  dashboard: ['Inicio', 'Resumen general del sistema.'],
+  equipos: ['Equipos críticos', 'Listado general de equipos.'],
+  historial: ['Historial', 'Registro de acciones realizadas.']
+};
 
       document.getElementById('pageTitle').textContent = titles[view][0];
       document.getElementById('pageSubtitle').textContent = titles[view][1];
