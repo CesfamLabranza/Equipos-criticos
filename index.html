@@ -572,86 +572,97 @@
       document.getElementById('cardRed').textContent = counts.rojo || 0;
     }
 
-    function renderEquipmentTable() {
-      const tbody = activeView === 'equiposGenerales'
+function renderEquipmentTable() {
+  const tbody =
+    activeView === 'equiposPrimordiales'
+      ? document.getElementById('equipmentTableBodyPrimordial')
+      : activeView === 'equiposGenerales'
         ? document.getElementById('equipmentTableBodyGeneral')
         : document.getElementById('equipmentTableBody');
 
-      const search = normalizeText(
-        activeView === 'equiposGenerales'
-          ? (document.getElementById('searchInputGeneral')?.value || '')
-          : (document.getElementById('searchInput')?.value || '')
-      );
+  const search = normalizeText(
+    activeView === 'equiposPrimordiales'
+      ? (document.getElementById('searchInputPrimordial')?.value || '')
+      : activeView === 'equiposGenerales'
+        ? (document.getElementById('searchInputGeneral')?.value || '')
+        : (document.getElementById('searchInput')?.value || '')
+  );
 
-      const sort = activeView === 'equiposGenerales'
+  const sort =
+    activeView === 'equiposPrimordiales'
+      ? (document.getElementById('sortFilterPrimordial')?.value || 'nombreAsc')
+      : activeView === 'equiposGenerales'
         ? (document.getElementById('sortFilterGeneral')?.value || 'nombreAsc')
         : (document.getElementById('sortFilter')?.value || 'nombreAsc');
 
-      let items = equipments.filter(e => {
-        const tipo = String(e.tipoEquipo || 'critico').toLowerCase();
+  let items = equipments.filter(e => {
+    const tipo = normalizeText(e.tipoEquipo || 'critico');
 
-        const coincideVista =
-          (activeView === 'equipos' && tipo === 'critico') ||
-          (activeView === 'equiposGenerales' && tipo === 'general');
+    const coincideVista =
+      (activeView === 'equipos' && tipo === 'critico') ||
+      (activeView === 'equiposPrimordiales' && tipo === 'primordial') ||
+      (activeView === 'equiposGenerales' && tipo === 'general');
 
-        const text = normalizeText(`${e.nombre} ${e.categoria} ${e.ubicacion} ${e.responsable}`);
-        const matchesSearch = !search || text.includes(search);
-        const matchesStatus = statusFilter === 'todos' || e.estado === statusFilter;
+    const text = normalizeText(`${e.nombre} ${e.categoria} ${e.ubicacion} ${e.responsable}`);
+    const matchesSearch = !search || text.includes(search);
+    const matchesStatus = statusFilter === 'todos' || e.estado === statusFilter;
 
-        return coincideVista && matchesSearch && matchesStatus;
-      });
+    return coincideVista && matchesSearch && matchesStatus;
+  });
 
-      items.sort((a, b) => {
-        if (sort === 'estado') {
-          const rank = { rojo: 1, amarillo: 2, verde: 3 };
-          return rank[a.estado] - rank[b.estado];
-        }
-        if (sort === 'proxima') {
-          return (a.proximaAtencion || '').localeCompare(b.proximaAtencion || '');
-        }
-        return (a.nombre || '').localeCompare(b.nombre || '', 'es');
-      });
-
-      if (!tbody) return;
-
-      if (!items.length) {
-        tbody.innerHTML = `<tr><td colspan="11">No hay equipos para mostrar.</td></tr>`;
-        return;
-      }
-
-      tbody.innerHTML = items.map(item => {
-        const badgeClass =
-          item.estado === 'verde' ? 'status-green' :
-          item.estado === 'amarillo' ? 'status-yellow' :
-          'status-red';
-
-        const tipoTexto = String(item.tipoEquipo || 'critico').toLowerCase() === 'general'
-          ? 'General'
-          : 'Crítico';
-
-        return `
-          <tr>
-            <td><strong>${escapeHtml(item.nombre)}</strong></td>
-            <td>${escapeHtml(item.categoria)}</td>
-            <td>${escapeHtml(item.ubicacion)}</td>
-            <td>${escapeHtml(item.responsable)}</td>
-            <td>${escapeHtml(tipoTexto)}</td>
-            <td>${escapeHtml(item.fechaMantencion)}</td>
-            <td>${escapeHtml(item.proximaAtencion)}</td>
-            <td>${escapeHtml(item.primerDiaHabil)}</td>
-            <td>${escapeHtml(item.ultimoDiaHabil)}</td>
-            <td><span class="status-badge ${badgeClass}">${escapeHtml(item.estadoTexto)}</span></td>
-            <td>
-              <div class="row-actions">
-                <button class="view-btn" onclick="viewEquipment('${item.id}')">Ver</button>
-                ${isAdmin() ? `<button class="edit-btn" onclick="editEquipment('${item.id}')">Editar</button>` : ''}
-                ${isAdmin() ? `<button class="delete-btn" onclick="deleteEquipment('${item.id}')">Eliminar</button>` : ''}
-              </div>
-            </td>
-          </tr>
-        `;
-      }).join('');
+  items.sort((a, b) => {
+    if (sort === 'estado') {
+      const rank = { rojo: 1, amarillo: 2, verde: 3 };
+      return rank[a.estado] - rank[b.estado];
     }
+    if (sort === 'proxima') {
+      return (a.proximaAtencion || '').localeCompare(b.proximaAtencion || '');
+    }
+    return (a.nombre || '').localeCompare(b.nombre || '', 'es');
+  });
+
+  if (!tbody) return;
+
+  if (!items.length) {
+    tbody.innerHTML = `<tr><td colspan="11">No hay equipos para mostrar.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = items.map(item => {
+    const badgeClass =
+      item.estado === 'verde' ? 'status-green' :
+      item.estado === 'amarillo' ? 'status-yellow' :
+      'status-red';
+
+    const tipoNormalizado = normalizeText(item.tipoEquipo || 'critico');
+    const tipoTexto =
+      tipoNormalizado === 'general' ? 'General' :
+      tipoNormalizado === 'primordial' ? 'Primordial' :
+      'Crítico';
+
+    return `
+      <tr>
+        <td><strong>${escapeHtml(item.nombre)}</strong></td>
+        <td>${escapeHtml(item.categoria)}</td>
+        <td>${escapeHtml(item.ubicacion)}</td>
+        <td>${escapeHtml(item.responsable)}</td>
+        <td>${escapeHtml(tipoTexto)}</td>
+        <td>${escapeHtml(item.fechaMantencion)}</td>
+        <td>${escapeHtml(item.proximaAtencion)}</td>
+        <td>${escapeHtml(item.primerDiaHabil)}</td>
+        <td>${escapeHtml(item.ultimoDiaHabil)}</td>
+        <td><span class="status-badge ${badgeClass}">${escapeHtml(item.estadoTexto)}</span></td>
+        <td>
+          <div class="row-actions">
+            <button class="view-btn" onclick="viewEquipment('${item.id}')">Ver</button>
+            ${isAdmin() ? `<button class="edit-btn" onclick="editEquipment('${item.id}')">Editar</button>` : ''}
+            ${isAdmin() ? `<button class="delete-btn" onclick="deleteEquipment('${item.id}')">Eliminar</button>` : ''}
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
 
     function renderHistory() {
       const container = document.getElementById('historyList');
@@ -670,29 +681,31 @@
       `).join('');
     }
 
-    function setView(view) {
-      activeView = view;
+function setView(view) {
+  activeView = view;
 
-      document.getElementById('dashboardView').classList.add('hidden');
-      document.getElementById('equiposView').classList.add('hidden');
-      document.getElementById('equiposGeneralesView').classList.add('hidden');
-      document.getElementById('historialView').classList.add('hidden');
+  document.getElementById('dashboardView').classList.add('hidden');
+  document.getElementById('equiposView').classList.add('hidden');
+  document.getElementById('equiposPrimordialesView').classList.add('hidden');
+  document.getElementById('equiposGeneralesView').classList.add('hidden');
+  document.getElementById('historialView').classList.add('hidden');
 
-      const titles = {
-        dashboard: ['Inicio', 'Resumen general del sistema.'],
-        equipos: ['Equipos críticos', 'Listado general de equipos críticos.'],
-        equiposGenerales: ['Equipos generales', 'Listado general de equipos no críticos.'],
-        historial: ['Historial', 'Registro de acciones realizadas.']
-      };
+  const titles = {
+    dashboard: ['Inicio', 'Resumen general del sistema.'],
+    equipos: ['Equipos críticos', 'Listado general de equipos críticos.'],
+    equiposPrimordiales: ['Equipos primordiales', 'Listado general de equipos primordiales.'],
+    equiposGenerales: ['Equipos generales', 'Listado general de equipos no críticos.'],
+    historial: ['Historial', 'Registro de acciones realizadas.']
+  };
 
-      document.getElementById('pageTitle').textContent = titles[view][0];
-      document.getElementById('pageSubtitle').textContent = titles[view][1];
-      document.getElementById(view + 'View').classList.remove('hidden');
+  document.getElementById('pageTitle').textContent = titles[view][0];
+  document.getElementById('pageSubtitle').textContent = titles[view][1];
+  document.getElementById(view + 'View').classList.remove('hidden');
 
-      if (view === 'equipos' || view === 'equiposGenerales') {
-        renderEquipmentTable();
-      }
-    }
+  if (view === 'equipos' || view === 'equiposPrimordiales' || view === 'equiposGenerales') {
+    renderEquipmentTable();
+  }
+}
 
     function applyStatusFilter(status) {
       statusFilter = status;
@@ -717,27 +730,29 @@
       return String(currentUser?.rol || '').toLowerCase() === 'administrador';
     }
 
-    function viewEquipment(id) {
-      const item = equipments.find(x => x.id === id);
-      if (!item) return;
+function viewEquipment(id) {
+  const item = equipments.find(x => x.id === id);
+  if (!item) return;
 
-      const tipoTexto = String(item.tipoEquipo || 'critico').toLowerCase() === 'general'
-        ? 'General'
-        : 'Crítico';
+  const tipoNormalizado = normalizeText(item.tipoEquipo || 'critico');
+  const tipoTexto =
+    tipoNormalizado === 'general' ? 'General' :
+    tipoNormalizado === 'primordial' ? 'Primordial' :
+    'Crítico';
 
-      alert(
-        `Nombre: ${item.nombre}\n` +
-        `Categoría: ${item.categoria}\n` +
-        `Ubicación: ${item.ubicacion}\n` +
-        `Responsable: ${item.responsable}\n` +
-        `Tipo: ${tipoTexto}\n` +
-        `Fecha mantención: ${item.fechaMantencion}\n` +
-        `Próxima atención: ${item.proximaAtencion}\n` +
-        `Primer día hábil: ${item.primerDiaHabil}\n` +
-        `Último día hábil: ${item.ultimoDiaHabil}\n` +
-        `Estado: ${item.estadoTexto}`
-      );
-    }
+  alert(
+    `Nombre: ${item.nombre}\n` +
+    `Categoría: ${item.categoria}\n` +
+    `Ubicación: ${item.ubicacion}\n` +
+    `Responsable: ${item.responsable}\n` +
+    `Tipo: ${tipoTexto}\n` +
+    `Fecha mantención: ${item.fechaMantencion}\n` +
+    `Próxima atención: ${item.proximaAtencion}\n` +
+    `Primer día hábil: ${item.primerDiaHabil}\n` +
+    `Último día hábil: ${item.ultimoDiaHabil}\n` +
+    `Estado: ${item.estadoTexto}`
+  );
+}
 
     function editEquipment(id) {
       const item = equipments.find(x => x.id === id);
@@ -807,7 +822,12 @@
       closeModal();
       await loadData();
 
-      const tipoGuardado = payload['Tipo de equipo'] === 'general' ? 'equiposGenerales' : 'equipos';
+      const tipoGuardado =
+  payload['Tipo de equipo'] === 'general'
+    ? 'equiposGenerales'
+    : payload['Tipo de equipo'] === 'primordial'
+      ? 'equiposPrimordiales'
+      : 'equipos';
       setView(tipoGuardado);
 
       alert(data.message);
