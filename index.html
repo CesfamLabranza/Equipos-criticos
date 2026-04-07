@@ -113,6 +113,11 @@
       background:rgba(255,255,255,.12);
     }
 
+.menu button.btn.btn-primary{
+  background: var(--primary);
+  color: #fff;
+  border: none;
+}
     .summary-box{
       margin-top:auto;
       background:rgba(255,255,255,.06);
@@ -600,33 +605,48 @@ async function uploadFile() {
   reader.readAsDataURL(file);
 }
 
-function viewFiles(id) {
-  const item = equipments.find(x => x.id === id);
-  if (!item) return;
+async function viewFiles(id) {
+  try {
+    const res = await fetch(API, {
+      method: 'POST',
+      body: JSON.stringify({
+        action: 'getArchivosEquipo',
+        id: id
+      })
+    });
 
-  const nombres = String(item.archivos || '').split(' | ').filter(Boolean);
-  const links = String(item.linksArchivos || '').split(' | ').filter(Boolean);
+    const data = await res.json();
 
-  if (!links.length) {
-    alert('Este equipo no tiene archivos cargados.');
-    return;
+    if (!data.success) {
+      alert(data.message || 'No fue posible obtener los archivos.');
+      return;
+    }
+
+    const archivos = data.archivos || [];
+
+    if (!archivos.length) {
+      alert('Este equipo no tiene archivos cargados.');
+      return;
+    }
+
+    let html = '<div style="padding:20px;font-family:Arial,sans-serif;">';
+    html += '<h2>Archivos del equipo</h2><ul>';
+
+    archivos.forEach(a => {
+      html += `<li style="margin-bottom:10px;">
+        <a href="${a.url}" target="_blank">${a.nombre}</a>
+      </li>`;
+    });
+
+    html += '</ul></div>';
+
+    const win = window.open('', '_blank', 'width=700,height=500');
+    win.document.write(html);
+    win.document.close();
+
+  } catch (error) {
+    alert('No fue posible conectar con el sistema.');
   }
-
-  let html = '<div style="padding:20px;font-family:Arial,sans-serif;">';
-  html += `<h2>Archivos del equipo ${item.nombre}</h2>`;
-  html += '<ul>';
-
-  for (let i = 0; i < links.length; i++) {
-    const nombre = nombres[i] || ('Archivo ' + (i + 1));
-    const link = links[i];
-    html += `<li style="margin-bottom:10px;"><a href="${link}" target="_blank">${nombre}</a></li>`;
-  }
-
-  html += '</ul></div>';
-
-  const win = window.open('', '_blank', 'width=700,height=500');
-  win.document.write(html);
-  win.document.close();
 }
     
     function updateAdminVisibility() {
