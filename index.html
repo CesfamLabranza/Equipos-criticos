@@ -54,7 +54,16 @@
     .btn-primary{background:var(--primary);color:#fff}
     .btn-secondary{background:#eef2f7;color:var(--text)}
     .btn-danger{background:var(--danger);color:#fff}
-
+.modal-backdrop{
+  position: fixed;
+  inset: 0;
+  background: rgba(15,23,42,.45);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 18px;
+  z-index: 9999;
+}
     .app{
       min-height:100vh;
       display:grid;
@@ -293,7 +302,9 @@
       <option value="estado">Ordenar por semáforo</option>
       <option value="proxima">Ordenar por próxima atención</option>
     </select>
-    <button class="btn btn-primary admin-only" onclick="openNewEquipmentModal()">+ Nuevo equipo</button>
+    <button type="button" class="admin-only" onclick="openNewEquipmentModal(); return false;">
+  Nuevo equipo
+</button>
   </div>
 
   <div class="table-wrap">
@@ -326,7 +337,9 @@
             <option value="estado">Ordenar por semáforo</option>
             <option value="proxima">Ordenar por próxima atención</option>
           </select>
-          <button class="btn btn-primary admin-only" onclick="openNewEquipmentModal()">+ Nuevo equipo</button>
+          <button type="button" class="btn btn-primary admin-only" onclick="openNewEquipmentModal(); return false;">
+  + Nuevo equipo
+</button>
         </div>
 
         <div class="table-wrap">
@@ -719,11 +732,16 @@ function setView(view) {
 function openNewEquipmentModal() {
   document.getElementById('modalTitle').textContent = 'Nuevo equipo';
   document.getElementById('equipmentForm').reset();
+
   document.getElementById('equipmentId').value = '';
   document.getElementById('equipmentId').readOnly = false;
+
   document.getElementById('equipmentType').value = 'critico';
   document.getElementById('formError').classList.add('hidden');
-  document.getElementById('modalBackdrop').classList.remove('hidden');
+
+  const modal = document.getElementById('modalBackdrop');
+  modal.classList.remove('hidden');
+  modal.style.display = 'flex';
 }
 
     function closeModal() {
