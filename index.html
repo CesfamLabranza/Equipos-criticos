@@ -605,6 +605,8 @@ async function uploadFile() {
   reader.readAsDataURL(file);
 }
 
+let archivosWindow = null;
+
 async function viewFiles(id) {
   try {
     const res = await fetch(API, {
@@ -640,9 +642,15 @@ async function viewFiles(id) {
 
     html += '</ul></div>';
 
-    const win = window.open('', '_blank', 'width=700,height=500');
-    win.document.write(html);
-    win.document.close();
+    // cerrar si ya existe
+    if (archivosWindow && !archivosWindow.closed) {
+      archivosWindow.close();
+    }
+
+    // abrir nueva
+    archivosWindow = window.open('', '_blank', 'width=700,height=500');
+    archivosWindow.document.write(html);
+    archivosWindow.document.close();
 
   } catch (error) {
     alert('No fue posible conectar con el sistema.');
