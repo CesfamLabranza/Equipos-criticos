@@ -631,26 +631,49 @@ async function viewFiles(id) {
       return;
     }
 
-    let html = '<div style="padding:20px;font-family:Arial,sans-serif;">';
-    html += '<h2>Archivos del equipo</h2><ul>';
+    // abrir nueva pestaña
+    const tab = window.open('', '_blank');
+
+    let html = `
+    <html>
+    <head>
+      <title>Archivos del equipo</title>
+      <style>
+        body{
+          font-family:Arial;
+          padding:20px;
+          background:#f4f7fb;
+        }
+        .card{
+          background:white;
+          padding:15px;
+          border-radius:10px;
+          margin-bottom:10px;
+          border:1px solid #e5e7eb;
+        }
+        a{
+          text-decoration:none;
+          color:#2563eb;
+          font-weight:bold;
+        }
+      </style>
+    </head>
+    <body>
+      <h2>Archivos del equipo</h2>
+    `;
 
     archivos.forEach(a => {
-      html += `<li style="margin-bottom:10px;">
-        <a href="${a.url}" target="_blank">${a.nombre}</a>
-      </li>`;
+      html += `
+        <div class="card">
+          <a href="${a.url}" target="_blank">📎 ${a.nombre}</a>
+        </div>
+      `;
     });
 
-    html += '</ul></div>';
+    html += `</body></html>`;
 
-    // cerrar si ya existe
-    if (archivosWindow && !archivosWindow.closed) {
-      archivosWindow.close();
-    }
-
-    // abrir nueva
-    archivosWindow = window.open('', '_blank', 'width=700,height=500');
-    archivosWindow.document.write(html);
-    archivosWindow.document.close();
+    tab.document.write(html);
+    tab.document.close();
 
   } catch (error) {
     alert('No fue posible conectar con el sistema.');
