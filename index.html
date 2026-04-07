@@ -772,7 +772,7 @@ function renderEquipmentTable() {
       tipoNormalizado === 'general' ? 'General' :
       tipoNormalizado === 'primordial' ? 'Primordial' :
       'Crítico';
-
+const tieneArchivos = item.archivos && item.archivos.trim() !== '';
     return `
   <tr>
     <td>${escapeHtml(item.id)}</td>
@@ -794,9 +794,19 @@ function renderEquipmentTable() {
 
     ${isAdmin() ? `<button class="view-btn" onclick="openUploadModal('${item.id}')">Subir</button>` : ''}
 
-    <button class="view-btn" onclick="viewFiles('${item.id}')">
-      📎 Archivos ${item.archivos ? '✓' : ''}
+    <button class="view-btn" onclick="viewEquipment('${item.id}')">Ver</button>
+
+    ${isAdmin() ? `<button class="edit-btn" onclick="editEquipment('${item.id}')">Editar</button>` : ''}
+
+    ${isAdmin() ? `<button class="view-btn" onclick="openUploadModal('${item.id}')">Subir</button>` : ''}
+
+    <button class="${tieneArchivos ? 'edit-btn' : 'view-btn'}"
+            onclick="viewFiles('${item.id}')">
+      📎 Archivos ${tieneArchivos ? '✓' : ''}
     </button>
+
+    ${isAdmin() ? `<button class="delete-btn" onclick="deleteEquipment('${item.id}')">Eliminar</button>` : ''}
+
 
     ${isAdmin() ? `<button class="delete-btn" onclick="deleteEquipment('${item.id}')">Eliminar</button>` : ''}
   </div>
