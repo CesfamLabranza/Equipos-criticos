@@ -1080,53 +1080,50 @@ async function viewEquipment(id) {
         <div class="small">Información actual del equipo y trazabilidad de modificaciones.</div>
       </div>
 
-      <div class="card">
-        <h2>Datos actuales</h2>
-        <table>
-          <tbody>
-            <tr><th>ID</th><td>${escapeHtml(actual.id)}</td></tr>
-            <tr><th>Nombre del equipo</th><td>${escapeHtml(actual.nombre)}</td></tr>
-            <tr><th>Categoría</th><td>${escapeHtml(actual.categoria)}</td></tr>
-            <tr><th>Ubicación</th><td>${escapeHtml(actual.ubicacion)}</td></tr>
-            <tr><th>Responsable</th><td>${escapeHtml(actual.responsable)}</td></tr>
-            <tr><th>Empresa o técnico</th><td>${escapeHtml(actual.empresaOTecnico)}</td></tr>
-            <tr><th>Frecuencia</th><td>${escapeHtml(actual.frecuencia)}</td></tr>
-            <tr><th>Tipo de equipo</th><td>${escapeHtml(actual.tipoEquipo)}</td></tr>
-            <tr><th>Fecha mantención</th><td>${escapeHtml(actual.fechaMantencion)}</td></tr>
-            <tr><th>Próxima atención</th><td>${escapeHtml(actual.proximaAtencion)}</td></tr>
-            <tr><th>Correos alerta</th><td>${escapeHtml(actual.correosAlerta)}</td></tr>
-            <tr><th>Observaciones</th><td>${escapeHtml(actual.observaciones)}</td></tr>
-            <tr><th>Archivos</th><td>${escapeHtml(actual.archivos)}</td></tr>
-            <tr><th>Links archivos</th><td>${escapeHtml(actual.linksArchivos)}</td></tr>
-            <tr><th>Activo</th><td>${escapeHtml(actual.activo)}</td></tr>
-          </tbody>
-        </table>
-      </div>
+<div class="card">
+  <h2>Datos actuales</h2>
+  <table>
+    <tbody>
+      <tr><th>ID</th><td>${escapeHtml(actual.id)}</td></tr>
+      <tr><th>Nombre del equipo</th><td>${escapeHtml(actual.nombre)}</td></tr>
+      <tr><th>Categoría</th><td>${escapeHtml(actual.categoria)}</td></tr>
+      <tr><th>Ubicación</th><td>${escapeHtml(actual.ubicacion)}</td></tr>
+      <tr><th>Responsable</th><td>${escapeHtml(actual.responsable)}</td></tr>
+      <tr><th>Empresa o técnico</th><td>${escapeHtml(actual.empresaOTecnico)}</td></tr>
+      <tr><th>Frecuencia</th><td>${escapeHtml(actual.frecuencia)}</td></tr>
+      <tr><th>Tipo de equipo</th><td>${escapeHtml(actual.tipoEquipo)}</td></tr>
+      <tr><th>Fecha mantención</th><td>${escapeHtml(actual.fechaMantencion)}</td></tr>
+      <tr><th>Próxima atención</th><td>${escapeHtml(actual.proximaAtencion)}</td></tr>
+      <tr><th>Correos alerta</th><td>${escapeHtml(actual.correosAlerta)}</td></tr>
+      <tr><th>Observaciones</th><td>${escapeHtml(actual.observaciones)}</td></tr>
+      <tr><th>Activo</th><td>${escapeHtml(actual.activo)}</td></tr>
+    </tbody>
+  </table>
+</div>
 
       <div class="card">
         <h2>Historial de modificaciones</h2>
         <table>
-          <thead>
-            <tr>
-              <th>Fecha</th>
-              <th>Acción</th>
-              <th>Usuario</th>
-              <th>ID</th>
-              <th>Nombre</th>
-              <th>Categoría</th>
-              <th>Ubicación</th>
-              <th>Responsable</th>
-              <th>Empresa o técnico</th>
-              <th>Frecuencia</th>
-              <th>Tipo</th>
-              <th>Fecha mantención</th>
-              <th>Próxima atención</th>
-              <th>Correos alerta</th>
-              <th>Observaciones</th>
-              <th>Archivos</th>
-              <th>Activo</th>
-            </tr>
-          </thead>
+<thead>
+  <tr>
+    <th>Fecha</th>
+    <th>Acción</th>
+    <th>Usuario</th>
+    <th>ID</th>
+    <th>Nombre</th>
+    <th>Categoría</th>
+    <th>Ubicación</th>
+    <th>Responsable</th>
+    <th>Empresa o técnico</th>
+    <th>Frecuencia</th>
+    <th>Tipo</th>
+    <th>Fecha mantención</th>
+    <th>Próxima atención</th>
+    <th>Correos alerta</th>
+    <th>Observaciones</th>
+    <th>Activo</th>
+  </tr>
+</thead>
           <tbody>
     `;
 
@@ -1139,25 +1136,24 @@ async function viewEquipment(id) {
     } else {
       historial.forEach(item => {
         html += `
-          <tr>
-            <td>${escapeHtml(item.fecha)}</td>
-            <td>${escapeHtml(item.accion)}</td>
-            <td>${escapeHtml(item.usuario)}</td>
-            <td>${escapeHtml(item.id)}</td>
-            <td>${escapeHtml(item.nombre)}</td>
-            <td>${escapeHtml(item.categoria)}</td>
-            <td>${escapeHtml(item.ubicacion)}</td>
-            <td>${escapeHtml(item.responsable)}</td>
-            <td>${escapeHtml(item.empresaOTecnico)}</td>
-            <td>${escapeHtml(item.frecuencia)}</td>
-            <td>${escapeHtml(item.tipoEquipo)}</td>
-            <td>${escapeHtml(item.fechaMantencion)}</td>
-            <td>${escapeHtml(item.proximaAtencion)}</td>
-            <td>${escapeHtml(item.correosAlerta)}</td>
-            <td>${escapeHtml(item.observaciones)}</td>
-            <td>${escapeHtml(item.archivos)}</td>
-            <td>${escapeHtml(item.activo)}</td>
-          </tr>
+<tr>
+  <td>${escapeHtml(item.fecha)}</td>
+  <td>${escapeHtml(item.accion)}</td>
+  <td>${escapeHtml(item.usuario)}</td>
+  <td>${escapeHtml(item.id)}</td>
+  <td>${escapeHtml(item.nombre)}</td>
+  <td>${escapeHtml(item.categoria)}</td>
+  <td>${escapeHtml(item.ubicacion)}</td>
+  <td>${escapeHtml(item.responsable)}</td>
+  <td>${escapeHtml(item.empresaOTecnico)}</td>
+  <td>${escapeHtml(item.frecuencia)}</td>
+  <td>${escapeHtml(item.tipoEquipo)}</td>
+  <td>${escapeHtml(item.fechaMantencion)}</td>
+  <td>${escapeHtml(item.proximaAtencion)}</td>
+  <td>${escapeHtml(item.correosAlerta)}</td>
+  <td>${escapeHtml(item.observaciones)}</td>
+  <td>${escapeHtml(item.activo)}</td>
+</tr>
         `;
       });
     }
