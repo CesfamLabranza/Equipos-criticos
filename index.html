@@ -870,18 +870,18 @@ const tieneArchivos = item.archivos && item.archivos.trim() !== '';
     <td><span class="status-badge ${badgeClass}">${escapeHtml(item.estadoTexto)}</span></td>
 <td>
   <div class="row-actions">
-    <button class="view-btn" onclick="viewEquipment('${item.id}')">Ver</button>
+    <button type="button" class="view-btn" onclick="viewEquipment('${item.id}'); return false;">Ver</button>
 
-    ${isAdmin() ? `<button class="edit-btn" onclick="editEquipment('${item.id}')">Editar</button>` : ''}
+    ${isAdmin() ? `<button type="button" class="edit-btn" onclick="editEquipment('${item.id}'); return false;">Editar</button>` : ''}
 
-    ${isAdmin() ? `<button class="view-btn" onclick="openUploadModal('${item.id}')">Subir</button>` : ''}
+    ${isAdmin() ? `<button type="button" class="view-btn" onclick="openUploadModal('${item.id}'); return false;">Subir</button>` : ''}
 
-    <button class="${tieneArchivos ? 'edit-btn' : 'view-btn'}"
-            onclick="viewFiles('${item.id}')">
+    <button type="button" class="${tieneArchivos ? 'edit-btn' : 'view-btn'}"
+            onclick="viewFiles('${item.id}'); return false;">
       📎 Archivos ${tieneArchivos ? '✓' : ''}
     </button>
 
-    ${isAdmin() ? `<button class="delete-btn" onclick="deleteEquipment('${item.id}')">Eliminar</button>` : ''}
+    ${isAdmin() ? `<button type="button" class="delete-btn" onclick="deleteEquipment('${item.id}'); return false;">Eliminar</button>` : ''}
   </div>
 </td>
   </tr>
@@ -962,8 +962,13 @@ function openNewEquipmentModal() {
     }
 
 function viewEquipment(id) {
+  alert('Click detectado en Ver: ' + id);
+
   const item = equipments.find(x => String(x.id) === String(id));
-  if (!item) return;
+  if (!item) {
+    alert('No se encontró el equipo');
+    return;
+  }
 
   const tipoNormalizado = normalizeText(item.tipoEquipo || 'critico');
   const tipoTexto =
@@ -1008,7 +1013,10 @@ function editEquipment(id) {
   document.getElementById('alertEmails').value = item.correosAlerta || '';
   document.getElementById('equipmentNotes').value = item.observaciones || '';
   document.getElementById('formError').classList.add('hidden');
-  document.getElementById('modalBackdrop').classList.remove('hidden');
+
+  const modal = document.getElementById('modalBackdrop');
+  modal.classList.remove('hidden');
+  modal.style.display = 'flex';
 }
     async function saveEquipment(event) {
       event.preventDefault();
