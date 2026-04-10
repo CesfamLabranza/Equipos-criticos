@@ -608,6 +608,59 @@ async function uploadFile() {
 let archivosWindow = null;
 
 async function viewFiles(id) {
+
+  // abrir pestaña inmediatamente
+  const tab = window.open('', '_blank');
+
+  // mostrar loader
+  tab.document.write(`
+    <html>
+    <head>
+      <title>Cargando archivos...</title>
+      <style>
+        body{
+          font-family:Arial;
+          background:#f4f7fb;
+          display:flex;
+          justify-content:center;
+          align-items:center;
+          height:100vh;
+          margin:0;
+        }
+        .box{
+          text-align:center;
+          background:white;
+          padding:30px;
+          border-radius:14px;
+          box-shadow:0 10px 30px rgba(0,0,0,.08);
+        }
+        .spinner{
+          width:40px;
+          height:40px;
+          border:4px solid #e5e7eb;
+          border-top:4px solid #2563eb;
+          border-radius:50%;
+          animation:spin 1s linear infinite;
+          margin:auto;
+          margin-bottom:15px;
+        }
+        @keyframes spin{
+          from{transform:rotate(0deg)}
+          to{transform:rotate(360deg)}
+        }
+      </style>
+    </head>
+    <body>
+      <div class="box">
+        <div class="spinner"></div>
+        <div>Cargando archivos...</div>
+      </div>
+    </body>
+    </html>
+  `);
+
+  tab.document.close();
+
   try {
     const res = await fetch(API, {
       method: 'POST',
@@ -620,19 +673,16 @@ async function viewFiles(id) {
     const data = await res.json();
 
     if (!data.success) {
-      alert(data.message || 'No fue posible obtener los archivos.');
+      tab.document.body.innerHTML = "No fue posible obtener los archivos.";
       return;
     }
 
     const archivos = data.archivos || [];
 
     if (!archivos.length) {
-      alert('Este equipo no tiene archivos cargados.');
+      tab.document.body.innerHTML = "Este equipo no tiene archivos cargados.";
       return;
     }
-
-    // abrir nueva pestaña
-    const tab = window.open('', '_blank');
 
     let html = `
     <html>
@@ -672,11 +722,12 @@ async function viewFiles(id) {
 
     html += `</body></html>`;
 
+    tab.document.open();
     tab.document.write(html);
     tab.document.close();
 
   } catch (error) {
-    alert('No fue posible conectar con el sistema.');
+    tab.document.body.innerHTML = "No fue posible conectar con el sistema.";
   }
 }
     
