@@ -962,7 +962,7 @@ function openNewEquipmentModal() {
     }
 
 function viewEquipment(id) {
-  const item = equipments.find(x => x.id === id);
+  const item = equipments.find(x => String(x.id) === String(id));
   if (!item) return;
 
   const tipoNormalizado = normalizeText(item.tipoEquipo || 'critico');
@@ -987,7 +987,7 @@ function viewEquipment(id) {
 }
 
 function editEquipment(id) {
-  const item = equipments.find(x => x.id === id);
+  const item = equipments.find(x => String(x.id) === String(id));
   if (!item) return;
 
   document.getElementById('modalTitle').textContent = 'Modificar equipo';
