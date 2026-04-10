@@ -962,13 +962,8 @@ function openNewEquipmentModal() {
     }
 
 function viewEquipment(id) {
-  alert('Click detectado en Ver: ' + id);
-
   const item = equipments.find(x => String(x.id) === String(id));
-  if (!item) {
-    alert('No se encontró el equipo');
-    return;
-  }
+  if (!item) return;
 
   const tipoNormalizado = normalizeText(item.tipoEquipo || 'critico');
   const tipoTexto =
