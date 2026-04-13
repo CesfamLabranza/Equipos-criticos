@@ -486,800 +486,454 @@
     </div>
   </div>
 
-  <script>
-    const API = "https://script.google.com/macros/s/AKfycbzgwWOc0ZymXg6D_5yncrjhxkNRpEZVhGLYm0eC-fsOIMo01Tuoo_tQT7kHFUW6Qnwc/exec";
+<script>
+  const API = "https://script.google.com/macros/s/AKfycbzgwWOc0ZymXg6D_5yncrjhxkNRpEZVhGLYm0eC-fsOIMo01Tuoo_tQT7kHFUW6Qnwc/exec";
 
-    let currentUser = null;
-    let equipments = [];
-    let historyItems = [];
-    let activeView = 'dashboard';
-    let statusFilter = 'todos';
+  let currentUser = null;
+  let equipments = [];
+  let historyItems = [];
+  let activeView = 'dashboard';
+  let statusFilter = 'todos';
 
-    async function login() {
-      const rut = document.getElementById('loginRut').value.trim();
-      const password = document.getElementById('loginPassword').value.trim();
-      const errorEl = document.getElementById('loginError');
-      const loadingEl = document.getElementById('loginLoading');
+  function escapeHtml(text) {
+    return String(text || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
 
-      errorEl.classList.add('hidden');
-      loadingEl.classList.remove('hidden');
+  function normalizeText(text) {
+    return String(text || '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
 
+  function isAdmin() {
+    return String(currentUser?.rol || '').toLowerCase() === 'administrador';
+  }
+
+  function formatearFecha(fecha) {
+    if (!fecha || fecha === 'Sin fecha registrada') return 'Sin fecha registrada';
+    const f = new Date(fecha);
+    if (isNaN(f)) return fecha;
+    return f.toLocaleString('es-CL', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  }
+
+  function toISODate(text) {
+    if (!text) return '';
+    const match = String(text).match(/^(\d{2})-(\d{2})-(\d{4})$/);
+    if (match) return `${match[3]}-${match[2]}-${match[1]}`;
+    return text;
+  }
+
+  function getCurrentWeekValue() {
+    const now = new Date();
+    const date = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
+    const dayNum = date.getUTCDay() || 7;
+    date.setUTCDate(date.getUTCDate() + 4 - dayNum);
+    const yearStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1));
+    const weekNo = Math.ceil((((date - yearStart) / 86400000) + 1) / 7);
+    return `${date.getUTCFullYear()}-W${String(weekNo).padStart(2, '0')}`;
+  }
+
+  async function login() {
+    const rut = document.getElementById('loginRut').value.trim();
+    const password = document.getElementById('loginPassword').value.trim();
+    const errorEl = document.getElementById('loginError');
+    const loadingEl = document.getElementById('loginLoading');
+
+    errorEl.classList.add('hidden');
+    loadingEl.classList.remove('hidden');
+
+    try {
+      const res = await fetch(API, {
+        method: 'POST',
+        body: JSON.stringify({ action: 'login', rut, password })
+      });
+
+      const data = await res.json();
+
+      if (!data.success) {
+        loadingEl.classList.add('hidden');
+        errorEl.textContent = data.message || 'Credenciales incorrectas.';
+        errorEl.classList.remove('hidden');
+        return;
+      }
+
+      currentUser = data.user;
+
+      document.getElementById('loginScreen').classList.add('hidden');
+      document.getElementById('app').classList.remove('hidden');
+
+      document.getElementById('loggedUserName').textContent =
+        `${currentUser.nombre} ${currentUser.apellidos}`;
+
+      document.getElementById('loggedUserMeta').textContent =
+        `${currentUser.profesion} | ${currentUser.establecimiento} | ${currentUser.rol}`;
+
+      updateAdminVisibility();
+      await loadData();
+    } catch (error) {
+      loadingEl.classList.add('hidden');
+      errorEl.textContent = 'No fue posible conectar con el sistema.';
+      errorEl.classList.remove('hidden');
+    }
+  }
+
+  function logout() {
+    location.reload();
+  }
+
+  function updateAdminVisibility() {
+    const admin = isAdmin();
+    document.querySelectorAll('.admin-only').forEach(el => {
+      if (admin) el.classList.remove('hidden');
+      else el.classList.add('hidden');
+    });
+  }
+
+  async function loadData() {
+    const [equiposRes, historyRes] = await Promise.all([
+      fetch(API, { method:'POST', body: JSON.stringify({ action: 'getEquipos' }) }),
+      fetch(API, { method:'POST', body: JSON.stringify({ action: 'getHistory' }) })
+    ]);
+
+    const equiposData = await equiposRes.json();
+    const historyData = await historyRes.json();
+
+    equipments = equiposData.equipos || [];
+    historyItems = historyData.history || [];
+
+    renderAll();
+  }
+
+  function renderAll() {
+    renderSummary();
+    renderDashboard();
+    renderEquipmentTable();
+    renderHistory();
+  }
+
+  function renderSummary() {
+    const counts = { verde: 0, amarillo: 0, rojo: 0 };
+
+    equipments.forEach(e => {
+      counts[e.estado] = (counts[e.estado] || 0) + 1;
+    });
+
+    document.getElementById('sumTotal').textContent = equipments.length;
+    document.getElementById('sumGreen').textContent = counts.verde || 0;
+    document.getElementById('sumYellow').textContent = counts.amarillo || 0;
+    document.getElementById('sumRed').textContent = counts.rojo || 0;
+  }
+
+  function renderDashboard() {
+    const counts = { verde: 0, amarillo: 0, rojo: 0 };
+
+    equipments.forEach(e => {
+      counts[e.estado] = (counts[e.estado] || 0) + 1;
+    });
+
+    document.getElementById('cardTotal').textContent = equipments.length;
+    document.getElementById('cardGreen').textContent = counts.verde || 0;
+    document.getElementById('cardYellow').textContent = counts.amarillo || 0;
+    document.getElementById('cardRed').textContent = counts.rojo || 0;
+  }
+
+  function renderEquipmentTable() {
+    const tbody =
+      activeView === 'equiposPrimordiales'
+        ? document.getElementById('equipmentTableBodyPrimordial')
+        : activeView === 'equiposGenerales'
+          ? document.getElementById('equipmentTableBodyGeneral')
+          : document.getElementById('equipmentTableBody');
+
+    const search = normalizeText(
+      activeView === 'equiposPrimordiales'
+        ? (document.getElementById('searchInputPrimordial')?.value || '')
+        : activeView === 'equiposGenerales'
+          ? (document.getElementById('searchInputGeneral')?.value || '')
+          : (document.getElementById('searchInput')?.value || '')
+    );
+
+    const sort =
+      activeView === 'equiposPrimordiales'
+        ? (document.getElementById('sortFilterPrimordial')?.value || 'nombreAsc')
+        : activeView === 'equiposGenerales'
+          ? (document.getElementById('sortFilterGeneral')?.value || 'nombreAsc')
+          : (document.getElementById('sortFilter')?.value || 'nombreAsc');
+
+    let items = equipments.filter(e => {
+      const tipo = normalizeText(e.tipoEquipo || 'critico');
+
+      const coincideVista =
+        (activeView === 'equipos' && tipo === 'critico') ||
+        (activeView === 'equiposPrimordiales' && tipo === 'primordial') ||
+        (activeView === 'equiposGenerales' && tipo === 'general');
+
+      const text = normalizeText(`${e.nombre} ${e.categoria} ${e.ubicacion} ${e.responsable}`);
+      const matchesSearch = !search || text.includes(search);
+      const matchesStatus = statusFilter === 'todos' || e.estado === statusFilter;
+
+      return coincideVista && matchesSearch && matchesStatus;
+    });
+
+    items.sort((a, b) => {
+      if (sort === 'estado') {
+        const rank = { rojo: 1, amarillo: 2, verde: 3 };
+        return rank[a.estado] - rank[b.estado];
+      }
+      if (sort === 'proxima') {
+        return (a.proximaAtencion || '').localeCompare(b.proximaAtencion || '');
+      }
+      return (a.nombre || '').localeCompare(b.nombre || '', 'es');
+    });
+
+    if (!tbody) return;
+
+    if (!items.length) {
+      tbody.innerHTML = `<tr><td colspan="12">No hay equipos para mostrar.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = items.map(item => {
+      const badgeClass =
+        item.estado === 'verde' ? 'status-green' :
+        item.estado === 'amarillo' ? 'status-yellow' :
+        'status-red';
+
+      const tipoNormalizado = normalizeText(item.tipoEquipo || 'critico');
+      const tipoTexto =
+        tipoNormalizado === 'general' ? 'General' :
+        tipoNormalizado === 'primordial' ? 'Primordial' :
+        'Crítico';
+
+      const tieneArchivos = item.archivos && item.archivos.trim() !== '';
+
+      return `
+        <tr>
+          <td>${escapeHtml(item.id)}</td>
+          <td><strong>${escapeHtml(item.nombre)}</strong></td>
+          <td>${escapeHtml(item.categoria)}</td>
+          <td>${escapeHtml(item.ubicacion)}</td>
+          <td>${escapeHtml(item.responsable)}</td>
+          <td>${escapeHtml(tipoTexto)}</td>
+          <td>${escapeHtml(item.fechaMantencion)}</td>
+          <td>${escapeHtml(item.proximaAtencion)}</td>
+          <td>${escapeHtml(item.primerDiaHabil)}</td>
+          <td>${escapeHtml(item.ultimoDiaHabil)}</td>
+          <td><span class="status-badge ${badgeClass}">${escapeHtml(item.estadoTexto)}</span></td>
+          <td>
+            <div class="row-actions">
+              <button type="button" class="view-btn" onclick="viewEquipment('${item.id}'); return false;">Ver</button>
+              ${isAdmin() ? `<button type="button" class="edit-btn" onclick="editEquipment('${item.id}'); return false;">Editar</button>` : ''}
+              ${isAdmin() ? `<button type="button" class="view-btn" onclick="openUploadModal('${item.id}'); return false;">Subir</button>` : ''}
+              <button type="button" class="${tieneArchivos ? 'edit-btn' : 'view-btn'}" onclick="viewFiles('${item.id}'); return false;">
+                📎 Archivos ${tieneArchivos ? '✓' : ''}
+              </button>
+              ${isAdmin() ? `<button type="button" class="delete-btn" onclick="deleteEquipment('${item.id}'); return false;">Eliminar</button>` : ''}
+            </div>
+          </td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  function renderHistory() {
+    const container = document.getElementById('historyList');
+
+    if (!historyItems.length) {
+      container.innerHTML = '<div>No existen registros.</div>';
+      return;
+    }
+
+    container.innerHTML = historyItems.map(item => `
+      <div class="card" style="margin-bottom:10px;">
+        <strong>${escapeHtml(item.accion)}</strong>
+        <div style="margin-top:8px;">${escapeHtml(item.detalle)}</div>
+        <div style="margin-top:8px;color:#6b7280;">${escapeHtml(item.fecha)} | ${escapeHtml(item.usuario)}</div>
+      </div>
+    `).join('');
+  }
+
+  function setView(view) {
+    activeView = view;
+
+    document.getElementById('dashboardView').classList.add('hidden');
+    document.getElementById('equiposView').classList.add('hidden');
+    document.getElementById('equiposPrimordialesView').classList.add('hidden');
+    document.getElementById('equiposGeneralesView').classList.add('hidden');
+    document.getElementById('historialView').classList.add('hidden');
+
+    const titles = {
+      dashboard: ['Inicio', 'Resumen general del sistema.'],
+      equipos: ['Equipos críticos', 'Listado general de equipos críticos.'],
+      equiposPrimordiales: ['Equipos primordiales', 'Listado general de equipos primordiales.'],
+      equiposGenerales: ['Equipos generales', 'Listado general de equipos no críticos.'],
+      historial: ['Historial equipos', 'Registro de acciones realizadas en los equipos.']
+    };
+
+    document.getElementById('pageTitle').textContent = titles[view][0];
+    document.getElementById('pageSubtitle').textContent = titles[view][1];
+    document.getElementById(view + 'View').classList.remove('hidden');
+
+    if (view === 'equipos' || view === 'equiposPrimordiales' || view === 'equiposGenerales') {
+      renderEquipmentTable();
+    }
+  }
+
+  function applyStatusFilter(status) {
+    statusFilter = status;
+    setView('equipos');
+    renderEquipmentTable();
+  }
+
+  function openNewEquipmentModal() {
+    document.getElementById('modalTitle').textContent = 'Nuevo equipo';
+    document.getElementById('equipmentForm').reset();
+    document.getElementById('equipmentId').value = '';
+    document.getElementById('equipmentId').readOnly = false;
+    document.getElementById('equipmentType').value = 'critico';
+    document.getElementById('formError').classList.add('hidden');
+
+    const modal = document.getElementById('modalBackdrop');
+    modal.classList.remove('hidden');
+    modal.style.display = 'flex';
+  }
+
+  function closeModal() {
+    document.getElementById('modalBackdrop').classList.add('hidden');
+  }
+
+  async function openUploadModal(id) {
+    document.getElementById('uploadEquipmentId').value = id;
+    document.getElementById('uploadFileInput').value = '';
+    document.getElementById('uploadFormError').classList.add('hidden');
+    document.getElementById('uploadModalBackdrop').classList.remove('hidden');
+  }
+
+  function closeUploadModal() {
+    document.getElementById('uploadModalBackdrop').classList.add('hidden');
+  }
+
+  async function uploadFile() {
+    const id = document.getElementById('uploadEquipmentId').value.trim();
+    const fileInput = document.getElementById('uploadFileInput');
+    const errorEl = document.getElementById('uploadFormError');
+
+    if (!fileInput.files || !fileInput.files[0]) {
+      errorEl.textContent = 'Debe seleccionar un archivo.';
+      errorEl.classList.remove('hidden');
+      return;
+    }
+
+    const file = fileInput.files[0];
+    const reader = new FileReader();
+
+    reader.onload = async function(e) {
       try {
+        const result = e.target.result;
+        const base64 = result.split(',')[1];
+
         const res = await fetch(API, {
           method: 'POST',
-          body: JSON.stringify({ action: 'login', rut, password })
+          body: JSON.stringify({
+            action: 'uploadArchivo',
+            user: currentUser,
+            id: id,
+            fileName: file.name,
+            mimeType: file.type || 'application/octet-stream',
+            base64: base64
+          })
         });
 
         const data = await res.json();
 
         if (!data.success) {
-          loadingEl.classList.add('hidden');
-          errorEl.textContent = data.message || 'Credenciales incorrectas.';
+          errorEl.textContent = data.message || 'No fue posible subir el archivo.';
           errorEl.classList.remove('hidden');
           return;
         }
 
-        currentUser = data.user;
-
-        document.getElementById('loginScreen').classList.add('hidden');
-        document.getElementById('app').classList.remove('hidden');
-
-        document.getElementById('loggedUserName').textContent =
-          `${currentUser.nombre} ${currentUser.apellidos}`;
-
-        document.getElementById('loggedUserMeta').textContent =
-          `${currentUser.profesion} | ${currentUser.establecimiento} | ${currentUser.rol}`;
-
-        updateAdminVisibility();
+        closeUploadModal();
         await loadData();
-
+        alert('Archivo subido correctamente.');
       } catch (error) {
-        loadingEl.classList.add('hidden');
         errorEl.textContent = 'No fue posible conectar con el sistema.';
         errorEl.classList.remove('hidden');
       }
-    }
+    };
 
-    function logout() {
-      location.reload();
-    }
-
-function openUploadModal(id) {
-  document.getElementById('uploadEquipmentId').value = id;
-  document.getElementById('uploadFileInput').value = '';
-  document.getElementById('uploadFormError').classList.add('hidden');
-  document.getElementById('uploadModalBackdrop').classList.remove('hidden');
-}
-
-function closeUploadModal() {
-  document.getElementById('uploadModalBackdrop').classList.add('hidden');
-}
-
-async function uploadFile() {
-  const id = document.getElementById('uploadEquipmentId').value.trim();
-  const fileInput = document.getElementById('uploadFileInput');
-  const errorEl = document.getElementById('uploadFormError');
-
-  if (!fileInput.files || !fileInput.files[0]) {
-    errorEl.textContent = 'Debe seleccionar un archivo.';
-    errorEl.classList.remove('hidden');
-    return;
+    reader.readAsDataURL(file);
   }
 
-  const file = fileInput.files[0];
-  const reader = new FileReader();
+  async function viewFiles(id) {
+    const tab = window.open('', '_blank');
 
-  reader.onload = async function(e) {
-    try {
-      const result = e.target.result;
-      const base64 = result.split(',')[1];
-
-      const res = await fetch(API, {
-        method: 'POST',
-        body: JSON.stringify({
-          action: 'uploadArchivo',
-          user: currentUser,
-          id: id,
-          fileName: file.name,
-          mimeType: file.type || 'application/octet-stream',
-          base64: base64
-        })
-      });
-
-      const data = await res.json();
-
-      if (!data.success) {
-        errorEl.textContent = data.message || 'No fue posible subir el archivo.';
-        errorEl.classList.remove('hidden');
-        return;
-      }
-
-      closeUploadModal();
-      await loadData();
-      alert('Archivo subido correctamente.');
-    } catch (error) {
-      errorEl.textContent = 'No fue posible conectar con el sistema.';
-      errorEl.classList.remove('hidden');
-    }
-  };
-
-  reader.readAsDataURL(file);
-}
-
-let archivosWindow = null;
-
-async function viewFiles(id) {
-
-  // abrir pestaña inmediatamente
-  const tab = window.open('', '_blank');
-
-  // mostrar loader
-  tab.document.write(`
-    <html>
-    <head>
-      <title>Cargando archivos...</title>
-      <style>
-        body{
-          font-family:Arial;
-          background:#f4f7fb;
-          display:flex;
-          justify-content:center;
-          align-items:center;
-          height:100vh;
-          margin:0;
-        }
-        .box{
-          text-align:center;
-          background:white;
-          padding:30px;
-          border-radius:14px;
-          box-shadow:0 10px 30px rgba(0,0,0,.08);
-        }
-        .spinner{
-          width:40px;
-          height:40px;
-          border:4px solid #e5e7eb;
-          border-top:4px solid #2563eb;
-          border-radius:50%;
-          animation:spin 1s linear infinite;
-          margin:auto;
-          margin-bottom:15px;
-        }
-        @keyframes spin{
-          from{transform:rotate(0deg)}
-          to{transform:rotate(360deg)}
-        }
-      </style>
-    </head>
-    <body>
-      <div class="box">
-        <div class="spinner"></div>
-        <div>Cargando archivos...</div>
-      </div>
-    </body>
-    </html>
-  `);
-
-  tab.document.close();
-
-  try {
-    const res = await fetch(API, {
-      method: 'POST',
-      body: JSON.stringify({
-        action: 'getArchivosEquipo',
-        id: id
-      })
-    });
-
-    const data = await res.json();
-
-    if (!data.success) {
-      tab.document.body.innerHTML = "No fue posible obtener los archivos.";
-      return;
-    }
-
-    const archivos = data.archivos || [];
-
-    if (!archivos.length) {
-      tab.document.body.innerHTML = "Este equipo no tiene archivos cargados.";
-      return;
-    }
-
-    let html = `
-    <html>
-    <head>
-      <title>Archivos del equipo</title>
-<style>
-  body{
-    font-family:Arial;
-    padding:20px;
-    background:#f4f7fb;
-  }
-  .card{
-    background:white;
-    padding:15px;
-    border-radius:10px;
-    margin-bottom:10px;
-    border:1px solid #e5e7eb;
-  }
-  a{
-    text-decoration:none;
-    color:#2563eb;
-    font-weight:bold;
-  }
-  .file-date{
-    font-size:13px;
-    color:#6b7280;
-    margin-bottom:8px;
-  }
-</style>
-    </head>
-    <body>
-      <h2>Archivos del equipo</h2>
-    `;
-
-archivos
-  .sort((a, b) => new Date(b.fecha || 0) - new Date(a.fecha || 0))
-  .forEach(a => {
-  html += `
-    <div class="card">
-      <div class="file-date">Subido el: ${formatearFecha(a.fecha)}</div>
-      <a href="${a.url}" target="_blank">📎 ${a.nombre}</a>
-    </div>
-  `;
-});
-
-    html += `</body></html>`;
-
-    tab.document.open();
-    tab.document.write(html);
-    tab.document.close();
-
-  } catch (error) {
-    tab.document.body.innerHTML = "No fue posible conectar con el sistema.";
-  }
-}
-    
-    function updateAdminVisibility() {
-      const isAdmin = String(currentUser?.rol || '').toLowerCase() === 'administrador';
-      document.querySelectorAll('.admin-only').forEach(el => {
-        if (isAdmin) el.classList.remove('hidden');
-        else el.classList.add('hidden');
-      });
-    }
-
-    async function loadData() {
-      const [equiposRes, historyRes] = await Promise.all([
-        fetch(API, { method:'POST', body: JSON.stringify({ action: 'getEquipos' }) }),
-        fetch(API, { method:'POST', body: JSON.stringify({ action: 'getHistory' }) })
-      ]);
-
-      const equiposData = await equiposRes.json();
-      const historyData = await historyRes.json();
-
-      equipments = equiposData.equipos || [];
-      historyItems = historyData.history || [];
-
-      renderAll();
-    }
- 
-    function renderAll() {
-      renderSummary();
-      renderDashboard();
-      renderEquipmentTable();
-      renderHistory();
-    }
-
-    function renderSummary() {
-      const counts = { verde: 0, amarillo: 0, rojo: 0 };
-
-      equipments.forEach(e => {
-        counts[e.estado] = (counts[e.estado] || 0) + 1;
-      });
-
-      document.getElementById('sumTotal').textContent = equipments.length;
-      document.getElementById('sumGreen').textContent = counts.verde || 0;
-      document.getElementById('sumYellow').textContent = counts.amarillo || 0;
-      document.getElementById('sumRed').textContent = counts.rojo || 0;
-    }
-
-    function renderDashboard() {
-      const counts = { verde: 0, amarillo: 0, rojo: 0 };
-
-      equipments.forEach(e => {
-        counts[e.estado] = (counts[e.estado] || 0) + 1;
-      });
-
-      document.getElementById('cardTotal').textContent = equipments.length;
-      document.getElementById('cardGreen').textContent = counts.verde || 0;
-      document.getElementById('cardYellow').textContent = counts.amarillo || 0;
-      document.getElementById('cardRed').textContent = counts.rojo || 0;
-    }
-
-function renderEquipmentTable() {
-  const tbody =
-    activeView === 'equiposPrimordiales'
-      ? document.getElementById('equipmentTableBodyPrimordial')
-      : activeView === 'equiposGenerales'
-        ? document.getElementById('equipmentTableBodyGeneral')
-        : document.getElementById('equipmentTableBody');
-
-  const search = normalizeText(
-    activeView === 'equiposPrimordiales'
-      ? (document.getElementById('searchInputPrimordial')?.value || '')
-      : activeView === 'equiposGenerales'
-        ? (document.getElementById('searchInputGeneral')?.value || '')
-        : (document.getElementById('searchInput')?.value || '')
-  );
-
-  const sort =
-    activeView === 'equiposPrimordiales'
-      ? (document.getElementById('sortFilterPrimordial')?.value || 'nombreAsc')
-      : activeView === 'equiposGenerales'
-        ? (document.getElementById('sortFilterGeneral')?.value || 'nombreAsc')
-        : (document.getElementById('sortFilter')?.value || 'nombreAsc');
-
-  let items = equipments.filter(e => {
-    const tipo = normalizeText(e.tipoEquipo || 'critico');
-
-    const coincideVista =
-      (activeView === 'equipos' && tipo === 'critico') ||
-      (activeView === 'equiposPrimordiales' && tipo === 'primordial') ||
-      (activeView === 'equiposGenerales' && tipo === 'general');
-
-    const text = normalizeText(`${e.nombre} ${e.categoria} ${e.ubicacion} ${e.responsable}`);
-    const matchesSearch = !search || text.includes(search);
-    const matchesStatus = statusFilter === 'todos' || e.estado === statusFilter;
-
-    return coincideVista && matchesSearch && matchesStatus;
-  });
-
-  items.sort((a, b) => {
-    if (sort === 'estado') {
-      const rank = { rojo: 1, amarillo: 2, verde: 3 };
-      return rank[a.estado] - rank[b.estado];
-    }
-    if (sort === 'proxima') {
-      return (a.proximaAtencion || '').localeCompare(b.proximaAtencion || '');
-    }
-    return (a.nombre || '').localeCompare(b.nombre || '', 'es');
-  });
-
-  if (!tbody) return;
-
-  if (!items.length) {
-    tbody.innerHTML = `<tr><td colspan="12">No hay equipos para mostrar.</td></tr>`;
-    return;
-  }
-
-  tbody.innerHTML = items.map(item => {
-    const badgeClass =
-      item.estado === 'verde' ? 'status-green' :
-      item.estado === 'amarillo' ? 'status-yellow' :
-      'status-red';
-
-    const tipoNormalizado = normalizeText(item.tipoEquipo || 'critico');
-    const tipoTexto =
-      tipoNormalizado === 'general' ? 'General' :
-      tipoNormalizado === 'primordial' ? 'Primordial' :
-      'Crítico';
-const tieneArchivos = item.archivos && item.archivos.trim() !== '';
-    return `
-  <tr>
-    <td>${escapeHtml(item.id)}</td>
-    <td><strong>${escapeHtml(item.nombre)}</strong></td>
-    <td>${escapeHtml(item.categoria)}</td>
-    <td>${escapeHtml(item.ubicacion)}</td>
-    <td>${escapeHtml(item.responsable)}</td>
-    <td>${escapeHtml(tipoTexto)}</td>
-    <td>${escapeHtml(item.fechaMantencion)}</td>
-    <td>${escapeHtml(item.proximaAtencion)}</td>
-    <td>${escapeHtml(item.primerDiaHabil)}</td>
-    <td>${escapeHtml(item.ultimoDiaHabil)}</td>
-    <td><span class="status-badge ${badgeClass}">${escapeHtml(item.estadoTexto)}</span></td>
-<td>
-  <div class="row-actions">
-    <button type="button" class="view-btn" onclick="viewEquipment('${item.id}'); return false;">Ver</button>
-
-    ${isAdmin() ? `<button type="button" class="edit-btn" onclick="editEquipment('${item.id}'); return false;">Editar</button>` : ''}
-
-    ${isAdmin() ? `<button type="button" class="view-btn" onclick="openUploadModal('${item.id}'); return false;">Subir</button>` : ''}
-
-    <button type="button" class="${tieneArchivos ? 'edit-btn' : 'view-btn'}"
-            onclick="viewFiles('${item.id}'); return false;">
-      📎 Archivos ${tieneArchivos ? '✓' : ''}
-    </button>
-
-    ${isAdmin() ? `<button type="button" class="delete-btn" onclick="deleteEquipment('${item.id}'); return false;">Eliminar</button>` : ''}
-  </div>
-</td>
-  </tr>
-`;
-  }).join('');
-}
-
-    function renderHistory() {
-      const container = document.getElementById('historyList');
-
-      if (!historyItems.length) {
-        container.innerHTML = '<div>No existen registros.</div>';
-        return;
-      }
-
-      container.innerHTML = historyItems.map(item => `
-        <div class="card" style="margin-bottom:10px;">
-          <strong>${escapeHtml(item.accion)}</strong>
-          <div style="margin-top:8px;">${escapeHtml(item.detalle)}</div>
-          <div style="margin-top:8px;color:#6b7280;">${escapeHtml(item.fecha)} | ${escapeHtml(item.usuario)}</div>
+    tab.document.write(`
+      <html>
+      <head>
+        <title>Cargando archivos...</title>
+        <style>
+          body{
+            font-family:Arial;
+            background:#f4f7fb;
+            display:flex;
+            justify-content:center;
+            align-items:center;
+            height:100vh;
+            margin:0;
+          }
+          .box{
+            text-align:center;
+            background:white;
+            padding:30px;
+            border-radius:14px;
+            box-shadow:0 10px 30px rgba(0,0,0,.08);
+          }
+          .spinner{
+            width:40px;
+            height:40px;
+            border:4px solid #e5e7eb;
+            border-top:4px solid #2563eb;
+            border-radius:50%;
+            animation:spin 1s linear infinite;
+            margin:auto;
+            margin-bottom:15px;
+          }
+          @keyframes spin{
+            from{transform:rotate(0deg)}
+            to{transform:rotate(360deg)}
+          }
+        </style>
+      </head>
+      <body>
+        <div class="box">
+          <div class="spinner"></div>
+          <div>Cargando archivos...</div>
         </div>
-      `).join('');
-    }
+      </body>
+      </html>
+    `);
 
-function setView(view) {
-  activeView = view;
-
-  document.getElementById('dashboardView').classList.add('hidden');
-  document.getElementById('equiposView').classList.add('hidden');
-  document.getElementById('equiposPrimordialesView').classList.add('hidden');
-  document.getElementById('equiposGeneralesView').classList.add('hidden');
-  document.getElementById('historialView').classList.add('hidden');
-
-  const titles = {
-    dashboard: ['Inicio', 'Resumen general del sistema.'],
-    equipos: ['Equipos críticos', 'Listado general de equipos críticos.'],
-    equiposPrimordiales: ['Equipos primordiales', 'Listado general de equipos primordiales.'],
-    equiposGenerales: ['Equipos generales', 'Listado general de equipos no críticos.'],
-    historial: ['Historial equipos', 'Registro de acciones realizadas en los equipos.']
-  };
-
-  document.getElementById('pageTitle').textContent = titles[view][0];
-  document.getElementById('pageSubtitle').textContent = titles[view][1];
-  document.getElementById(view + 'View').classList.remove('hidden');
-
-  if (view === 'equipos' || view === 'equiposPrimordiales' || view === 'equiposGenerales') {
-    renderEquipmentTable();
-  }
-}
-
-    function applyStatusFilter(status) {
-      statusFilter = status;
-      setView('equipos');
-      renderEquipmentTable();
-    }
-
-function openNewEquipmentModal() {
-  document.getElementById('modalTitle').textContent = 'Nuevo equipo';
-  document.getElementById('equipmentForm').reset();
-
-  document.getElementById('equipmentId').value = '';
-  document.getElementById('equipmentId').readOnly = false;
-
-  document.getElementById('equipmentType').value = 'critico';
-  document.getElementById('formError').classList.add('hidden');
-
-  const modal = document.getElementById('modalBackdrop');
-  modal.classList.remove('hidden');
-  modal.style.display = 'flex';
-}
-
-    function closeModal() {
-      document.getElementById('modalBackdrop').classList.add('hidden');
-    }
-
-    function isAdmin() {
-      return String(currentUser?.rol || '').toLowerCase() === 'administrador';
-    }
-
-async function viewEquipment(id) {
-  const tab = window.open('', '_blank');
-
-  tab.document.write(`
-    <html>
-    <head>
-      <title>Cargando reporte...</title>
-      <style>
-        body{
-          font-family:Arial;
-          background:#f4f7fb;
-          display:flex;
-          justify-content:center;
-          align-items:center;
-          height:100vh;
-          margin:0;
-        }
-        .box{
-          text-align:center;
-          background:white;
-          padding:30px;
-          border-radius:14px;
-          box-shadow:0 10px 30px rgba(0,0,0,.08);
-        }
-        .spinner{
-          width:40px;
-          height:40px;
-          border:4px solid #e5e7eb;
-          border-top:4px solid #2563eb;
-          border-radius:50%;
-          animation:spin 1s linear infinite;
-          margin:auto;
-          margin-bottom:15px;
-        }
-        @keyframes spin{
-          from{transform:rotate(0deg)}
-          to{transform:rotate(360deg)}
-        }
-      </style>
-    </head>
-    <body>
-      <div class="box">
-        <div class="spinner"></div>
-        <div>Cargando reporte del equipo...</div>
-      </div>
-    </body>
-    </html>
-  `);
-
-  tab.document.close();
-
-  try {
-    const res = await fetch(API, {
-      method: 'POST',
-      body: JSON.stringify({
-        action: 'getEquipoReporte',
-        id: id
-      })
-    });
-
-    const data = await res.json();
-
-    if (!data.success) {
-      tab.document.body.innerHTML = `<div style="padding:20px;font-family:Arial;">${data.message || 'No fue posible obtener el reporte.'}</div>`;
-      return;
-    }
-
-    const actual = data.actual || {};
-    const historial = data.historial || [];
-
-    let html = `
-    <html>
-    <head>
-      <title>Reporte del equipo ${actual.nombre || ''}</title>
-      <style>
-        body{
-          font-family:Arial,sans-serif;
-          background:#f4f7fb;
-          margin:0;
-          padding:24px;
-          color:#1f2937;
-        }
-        h1,h2{
-          margin-top:0;
-        }
-        .card{
-          background:#fff;
-          border:1px solid #dbe3ee;
-          border-radius:14px;
-          padding:20px;
-          margin-bottom:20px;
-        }
-        table{
-          width:100%;
-          border-collapse:collapse;
-          background:#fff;
-          font-size:14px;
-        }
-        th, td{
-          border:1px solid #dbe3ee;
-          padding:10px;
-          text-align:left;
-          vertical-align:top;
-        }
-        th{
-          background:#eff5ff;
-        }
-        .small{
-          font-size:13px;
-          color:#6b7280;
-        }
-      </style>
-    </head>
-    <body>
-      <div class="card">
-        <h1>Reporte del equipo</h1>
-        <div class="small">Información actual del equipo y trazabilidad de modificaciones.</div>
-      </div>
-
-<div class="card">
-  <h2>Datos actuales</h2>
-  <table>
-    <tbody>
-      <tr><th>ID</th><td>${escapeHtml(actual.id)}</td></tr>
-      <tr><th>Nombre del equipo</th><td>${escapeHtml(actual.nombre)}</td></tr>
-      <tr><th>Categoría</th><td>${escapeHtml(actual.categoria)}</td></tr>
-      <tr><th>Ubicación</th><td>${escapeHtml(actual.ubicacion)}</td></tr>
-      <tr><th>Responsable</th><td>${escapeHtml(actual.responsable)}</td></tr>
-      <tr><th>Empresa o técnico</th><td>${escapeHtml(actual.empresaOTecnico)}</td></tr>
-      <tr><th>Frecuencia</th><td>${escapeHtml(actual.frecuencia)}</td></tr>
-      <tr><th>Tipo de equipo</th><td>${escapeHtml(actual.tipoEquipo)}</td></tr>
-      <tr><th>Fecha mantención</th><td>${escapeHtml(actual.fechaMantencion)}</td></tr>
-      <tr><th>Próxima atención</th><td>${escapeHtml(actual.proximaAtencion)}</td></tr>
-      <tr><th>Correos alerta</th><td>${escapeHtml(actual.correosAlerta)}</td></tr>
-      <tr><th>Observaciones</th><td>${escapeHtml(actual.observaciones)}</td></tr>
-      <tr><th>Activo</th><td>${escapeHtml(actual.activo)}</td></tr>
-    </tbody>
-  </table>
-</div>
-
-      <div class="card">
-        <h2>Historial de modificaciones</h2>
-        <table>
-<thead>
-  <tr>
-    <th>Fecha</th>
-    <th>Acción</th>
-    <th>Usuario</th>
-    <th>ID</th>
-    <th>Nombre</th>
-    <th>Categoría</th>
-    <th>Ubicación</th>
-    <th>Responsable</th>
-    <th>Empresa o técnico</th>
-    <th>Frecuencia</th>
-    <th>Tipo</th>
-    <th>Fecha mantención</th>
-    <th>Próxima atención</th>
-    <th>Correos alerta</th>
-    <th>Observaciones</th>
-    <th>Activo</th>
-  </tr>
-</thead>
-          <tbody>
-    `;
-
-    if (!historial.length) {
-      html += `
-        <tr>
-          <td colspan="17">No existen modificaciones registradas para este equipo.</td>
-        </tr>
-      `;
-    } else {
-      historial.forEach(item => {
-        html += `
-<tr>
-  <td>${escapeHtml(item.fecha)}</td>
-  <td>${escapeHtml(item.accion)}</td>
-  <td>${escapeHtml(item.usuario)}</td>
-  <td>${escapeHtml(item.id)}</td>
-  <td>${escapeHtml(item.nombre)}</td>
-  <td>${escapeHtml(item.categoria)}</td>
-  <td>${escapeHtml(item.ubicacion)}</td>
-  <td>${escapeHtml(item.responsable)}</td>
-  <td>${escapeHtml(item.empresaOTecnico)}</td>
-  <td>${escapeHtml(item.frecuencia)}</td>
-  <td>${escapeHtml(item.tipoEquipo)}</td>
-  <td>${escapeHtml(item.fechaMantencion)}</td>
-  <td>${escapeHtml(item.proximaAtencion)}</td>
-  <td>${escapeHtml(item.correosAlerta)}</td>
-  <td>${escapeHtml(item.observaciones)}</td>
-  <td>${escapeHtml(item.activo)}</td>
-</tr>
-        `;
-      });
-    }
-
-    html += `
-          </tbody>
-        </table>
-      </div>
-    </body>
-    </html>
-    `;
-
-    tab.document.open();
-    tab.document.write(html);
     tab.document.close();
 
-  } catch (error) {
-    tab.document.body.innerHTML = `<div style="padding:20px;font-family:Arial;">No fue posible conectar con el sistema.</div>`;
-  }
-}
-
-function editEquipment(id) {
-  const item = equipments.find(x => String(x.id) === String(id));
-  if (!item) return;
-
-  document.getElementById('modalTitle').textContent = 'Modificar equipo';
-  document.getElementById('equipmentId').value = item.id;
-  document.getElementById('equipmentId').readOnly = true;
-  document.getElementById('equipmentName').value = item.nombre || '';
-  document.getElementById('equipmentCategory').value = item.categoria || '';
-  document.getElementById('equipmentLocation').value = item.ubicacion || '';
-  document.getElementById('equipmentResponsible').value = item.responsable || '';
-  document.getElementById('equipmentProvider').value = item.empresaOTecnico || '';
-  document.getElementById('equipmentFrequency').value = item.frecuencia || 'Mensual';
-  document.getElementById('equipmentType').value = normalizeText(item.tipoEquipo || 'critico');
-  document.getElementById('maintenanceDate').value = toISODate(item.fechaMantencion);
-
-  const parts = (item.proximaAtencion || '').split('/');
-  document.getElementById('nextAttentionMonth').value = parts[0] || '';
-  document.getElementById('nextAttentionYear').value = parts[1] || '';
-  document.getElementById('alertEmails').value = item.correosAlerta || '';
-  document.getElementById('equipmentNotes').value = item.observaciones || '';
-  document.getElementById('formError').classList.add('hidden');
-
-  const modal = document.getElementById('modalBackdrop');
-  modal.classList.remove('hidden');
-  modal.style.display = 'flex';
-}
-    async function saveEquipment(event) {
-      event.preventDefault();
-
-      const id = document.getElementById('equipmentId').value.trim();
-      if (!id) {
-  const errorEl = document.getElementById('formError');
-  errorEl.textContent = 'Debe ingresar un ID.';
-  errorEl.classList.remove('hidden');
-  return;
-}
-      const mes = document.getElementById('nextAttentionMonth').value;
-      const anio = document.getElementById('nextAttentionYear').value.trim();
-      const proximaAtencion = `${mes}/${anio}`;
-
-      const payload = {
-        'ID': id,
-        'Nombre del equipo': document.getElementById('equipmentName').value.trim(),
-        'Categoría': document.getElementById('equipmentCategory').value.trim(),
-        'Ubicación': document.getElementById('equipmentLocation').value.trim(),
-        'Responsable': document.getElementById('equipmentResponsible').value.trim(),
-        'Empresa o técnico': document.getElementById('equipmentProvider').value.trim(),
-        'Frecuencia': document.getElementById('equipmentFrequency').value.trim(),
-        'Tipo de equipo': document.getElementById('equipmentType').value,
-        'Fecha mantención': document.getElementById('maintenanceDate').value,
-        'Próxima atención': proximaAtencion,
-        'Correos alerta': document.getElementById('alertEmails').value.trim(),
-        'Observaciones': document.getElementById('equipmentNotes').value.trim()
-      };
-
+    try {
       const res = await fetch(API, {
         method: 'POST',
         body: JSON.stringify({
-          action: 'saveEquipo',
-          user: currentUser,
-          equipo: payload
-        })
-      });
-
-      const data = await res.json();
-
-      if (!data.success) {
-        const errorEl = document.getElementById('formError');
-        errorEl.textContent = data.message || 'No fue posible guardar.';
-        errorEl.classList.remove('hidden');
-        return;
-      }
-
-      closeModal();
-      await loadData();
-
-      const tipoGuardado =
-  payload['Tipo de equipo'] === 'general'
-    ? 'equiposGenerales'
-    : payload['Tipo de equipo'] === 'primordial'
-      ? 'equiposPrimordiales'
-      : 'equipos';
-      setView(tipoGuardado);
-
-      alert(data.message);
-    }
-
-    async function deleteEquipment(id) {
-      if (!confirm('¿Desea eliminar este equipo?')) return;
-
-      const res = await fetch(API, {
-        method: 'POST',
-        body: JSON.stringify({
-          action: 'deleteEquipo',
-          user: currentUser,
+          action: 'getArchivosEquipo',
           id: id
         })
       });
@@ -1287,57 +941,871 @@ function editEquipment(id) {
       const data = await res.json();
 
       if (!data.success) {
-        alert(data.message || 'No fue posible eliminar.');
+        tab.document.body.innerHTML = "No fue posible obtener los archivos.";
         return;
       }
 
-      await loadData();
-      alert(data.message);
+      const archivos = data.archivos || [];
+
+      if (!archivos.length) {
+        tab.document.body.innerHTML = "Este equipo no tiene archivos cargados.";
+        return;
+      }
+
+      let html = `
+      <html>
+      <head>
+        <title>Archivos del equipo</title>
+        <style>
+          body{
+            font-family:Arial;
+            padding:20px;
+            background:#f4f7fb;
+          }
+          .card{
+            background:white;
+            padding:15px;
+            border-radius:10px;
+            margin-bottom:10px;
+            border:1px solid #e5e7eb;
+          }
+          a{
+            text-decoration:none;
+            color:#2563eb;
+            font-weight:bold;
+          }
+          .file-date{
+            font-size:13px;
+            color:#6b7280;
+            margin-bottom:8px;
+          }
+        </style>
+      </head>
+      <body>
+        <h2>Archivos del equipo</h2>
+      `;
+
+      archivos
+        .sort((a, b) => new Date(b.fecha || 0) - new Date(a.fecha || 0))
+        .forEach(a => {
+          html += `
+            <div class="card">
+              <div class="file-date">Subido el: ${formatearFecha(a.fecha)}</div>
+              <a href="${a.url}" target="_blank">📎 ${a.nombre}</a>
+            </div>
+          `;
+        });
+
+      html += `</body></html>`;
+
+      tab.document.open();
+      tab.document.write(html);
+      tab.document.close();
+
+    } catch (error) {
+      tab.document.body.innerHTML = "No fue posible conectar con el sistema.";
+    }
+  }
+
+  async function viewEquipment(id) {
+    const tab = window.open('', '_blank');
+
+    tab.document.write(`
+      <html>
+      <head>
+        <title>Cargando reporte...</title>
+        <style>
+          body{
+            font-family:Arial;
+            background:#f4f7fb;
+            display:flex;
+            justify-content:center;
+            align-items:center;
+            height:100vh;
+            margin:0;
+          }
+          .box{
+            text-align:center;
+            background:white;
+            padding:30px;
+            border-radius:14px;
+            box-shadow:0 10px 30px rgba(0,0,0,.08);
+          }
+          .spinner{
+            width:40px;
+            height:40px;
+            border:4px solid #e5e7eb;
+            border-top:4px solid #2563eb;
+            border-radius:50%;
+            animation:spin 1s linear infinite;
+            margin:auto;
+            margin-bottom:15px;
+          }
+          @keyframes spin{
+            from{transform:rotate(0deg)}
+            to{transform:rotate(360deg)}
+          }
+        </style>
+      </head>
+      <body>
+        <div class="box">
+          <div class="spinner"></div>
+          <div>Cargando reporte del equipo...</div>
+        </div>
+      </body>
+      </html>
+    `);
+
+    tab.document.close();
+
+    try {
+      const res = await fetch(API, {
+        method: 'POST',
+        body: JSON.stringify({
+          action: 'getEquipoReporte',
+          id: id
+        })
+      });
+
+      const data = await res.json();
+
+      if (!data.success) {
+        tab.document.body.innerHTML = `<div style="padding:20px;font-family:Arial;">${data.message || 'No fue posible obtener el reporte.'}</div>`;
+        return;
+      }
+
+      const actual = data.actual || {};
+      const historial = data.historial || [];
+
+      let html = `
+      <html>
+      <head>
+        <title>Reporte del equipo ${actual.nombre || ''}</title>
+        <style>
+          body{
+            font-family:Arial,sans-serif;
+            background:#f4f7fb;
+            margin:0;
+            padding:24px;
+            color:#1f2937;
+          }
+          h1,h2{margin-top:0}
+          .card{
+            background:#fff;
+            border:1px solid #dbe3ee;
+            border-radius:14px;
+            padding:20px;
+            margin-bottom:20px;
+          }
+          table{
+            width:100%;
+            border-collapse:collapse;
+            background:#fff;
+            font-size:14px;
+          }
+          th,td{
+            border:1px solid #dbe3ee;
+            padding:10px;
+            text-align:left;
+            vertical-align:top;
+          }
+          th{background:#eff5ff}
+          .small{
+            font-size:13px;
+            color:#6b7280;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="card">
+          <h1>Reporte del equipo</h1>
+          <div class="small">Información actual del equipo y trazabilidad de modificaciones.</div>
+        </div>
+
+        <div class="card">
+          <h2>Datos actuales</h2>
+          <table>
+            <tbody>
+              <tr><th>ID</th><td>${escapeHtml(actual.id)}</td></tr>
+              <tr><th>Nombre del equipo</th><td>${escapeHtml(actual.nombre)}</td></tr>
+              <tr><th>Categoría</th><td>${escapeHtml(actual.categoria)}</td></tr>
+              <tr><th>Ubicación</th><td>${escapeHtml(actual.ubicacion)}</td></tr>
+              <tr><th>Responsable</th><td>${escapeHtml(actual.responsable)}</td></tr>
+              <tr><th>Empresa o técnico</th><td>${escapeHtml(actual.empresaOTecnico)}</td></tr>
+              <tr><th>Frecuencia</th><td>${escapeHtml(actual.frecuencia)}</td></tr>
+              <tr><th>Tipo de equipo</th><td>${escapeHtml(actual.tipoEquipo)}</td></tr>
+              <tr><th>Fecha mantención</th><td>${escapeHtml(actual.fechaMantencion)}</td></tr>
+              <tr><th>Próxima atención</th><td>${escapeHtml(actual.proximaAtencion)}</td></tr>
+              <tr><th>Correos alerta</th><td>${escapeHtml(actual.correosAlerta)}</td></tr>
+              <tr><th>Observaciones</th><td>${escapeHtml(actual.observaciones)}</td></tr>
+              <tr><th>Activo</th><td>${escapeHtml(actual.activo)}</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="card">
+          <h2>Historial de modificaciones</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Fecha</th>
+                <th>Acción</th>
+                <th>Usuario</th>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Categoría</th>
+                <th>Ubicación</th>
+                <th>Responsable</th>
+                <th>Empresa o técnico</th>
+                <th>Frecuencia</th>
+                <th>Tipo</th>
+                <th>Fecha mantención</th>
+                <th>Próxima atención</th>
+                <th>Correos alerta</th>
+                <th>Observaciones</th>
+                <th>Activo</th>
+              </tr>
+            </thead>
+            <tbody>
+      `;
+
+      if (!historial.length) {
+        html += `<tr><td colspan="16">No existen modificaciones registradas para este equipo.</td></tr>`;
+      } else {
+        historial.forEach(item => {
+          html += `
+            <tr>
+              <td>${escapeHtml(item.fecha)}</td>
+              <td>${escapeHtml(item.accion)}</td>
+              <td>${escapeHtml(item.usuario)}</td>
+              <td>${escapeHtml(item.id)}</td>
+              <td>${escapeHtml(item.nombre)}</td>
+              <td>${escapeHtml(item.categoria)}</td>
+              <td>${escapeHtml(item.ubicacion)}</td>
+              <td>${escapeHtml(item.responsable)}</td>
+              <td>${escapeHtml(item.empresaOTecnico)}</td>
+              <td>${escapeHtml(item.frecuencia)}</td>
+              <td>${escapeHtml(item.tipoEquipo)}</td>
+              <td>${escapeHtml(item.fechaMantencion)}</td>
+              <td>${escapeHtml(item.proximaAtencion)}</td>
+              <td>${escapeHtml(item.correosAlerta)}</td>
+              <td>${escapeHtml(item.observaciones)}</td>
+              <td>${escapeHtml(item.activo)}</td>
+            </tr>
+          `;
+        });
+      }
+
+      html += `
+            </tbody>
+          </table>
+        </div>
+      </body>
+      </html>
+      `;
+
+      tab.document.open();
+      tab.document.write(html);
+      tab.document.close();
+
+    } catch (error) {
+      tab.document.body.innerHTML = `<div style="padding:20px;font-family:Arial;">No fue posible conectar con el sistema.</div>`;
+    }
+  }
+
+  function editEquipment(id) {
+    const item = equipments.find(x => String(x.id) === String(id));
+    if (!item) return;
+
+    document.getElementById('modalTitle').textContent = 'Modificar equipo';
+    document.getElementById('equipmentId').value = item.id;
+    document.getElementById('equipmentId').readOnly = true;
+    document.getElementById('equipmentName').value = item.nombre || '';
+    document.getElementById('equipmentCategory').value = item.categoria || '';
+    document.getElementById('equipmentLocation').value = item.ubicacion || '';
+    document.getElementById('equipmentResponsible').value = item.responsable || '';
+    document.getElementById('equipmentProvider').value = item.empresaOTecnico || '';
+    document.getElementById('equipmentFrequency').value = item.frecuencia || 'Mensual';
+    document.getElementById('equipmentType').value = normalizeText(item.tipoEquipo || 'critico');
+    document.getElementById('maintenanceDate').value = toISODate(item.fechaMantencion);
+
+    if (item.proximaAtencion && item.proximaAtencion.includes('/')) {
+      const parts = item.proximaAtencion.split('/');
+      document.getElementById('nextAttentionMonth').value = parts[0] || '';
+      document.getElementById('nextAttentionYear').value = parts[1] || '';
+    } else {
+      document.getElementById('nextAttentionMonth').value = '';
+      document.getElementById('nextAttentionYear').value = '';
     }
 
-    function normalizeText(text) {
-      return String(text || '')
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '')
-        .toLowerCase()
-        .replace(/\s+/g, ' ')
-        .trim();
+    document.getElementById('alertEmails').value = item.correosAlerta || '';
+    document.getElementById('equipmentNotes').value = item.observaciones || '';
+    document.getElementById('formError').classList.add('hidden');
+    document.getElementById('modalBackdrop').classList.remove('hidden');
+  }
+
+  async function saveEquipment(event) {
+    event.preventDefault();
+
+    const month = document.getElementById('nextAttentionMonth').value;
+    const year = document.getElementById('nextAttentionYear').value;
+    const proximaAtencion = month && year ? `${month}/${year}` : '';
+
+    const payload = {
+      'ID': document.getElementById('equipmentId').value.trim(),
+      'Nombre del equipo': document.getElementById('equipmentName').value.trim(),
+      'Categoría': document.getElementById('equipmentCategory').value.trim(),
+      'Ubicación': document.getElementById('equipmentLocation').value.trim(),
+      'Responsable': document.getElementById('equipmentResponsible').value.trim(),
+      'Empresa o técnico': document.getElementById('equipmentProvider').value.trim(),
+      'Frecuencia': document.getElementById('equipmentFrequency').value.trim(),
+      'Tipo de equipo': document.getElementById('equipmentType').value,
+      'Fecha mantención': document.getElementById('maintenanceDate').value,
+      'Próxima atención': proximaAtencion,
+      'Correos alerta': document.getElementById('alertEmails').value.trim(),
+      'Observaciones': document.getElementById('equipmentNotes').value.trim()
+    };
+
+    const res = await fetch(API, {
+      method: 'POST',
+      body: JSON.stringify({
+        action: 'saveEquipo',
+        user: currentUser,
+        equipo: payload
+      })
+    });
+
+    const data = await res.json();
+
+    if (!data.success) {
+      const errorEl = document.getElementById('formError');
+      errorEl.textContent = data.message || 'No fue posible guardar.';
+      errorEl.classList.remove('hidden');
+      return;
     }
 
-    function escapeHtml(text) {
-      return String(text || '')
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;');
+    closeModal();
+    await loadData();
+    alert(data.message);
+  }
+
+  async function deleteEquipment(id) {
+    if (!confirm('¿Desea eliminar este equipo?')) return;
+
+    const res = await fetch(API, {
+      method: 'POST',
+      body: JSON.stringify({
+        action: 'deleteEquipo',
+        user: currentUser,
+        id: id
+      })
+    });
+
+    const data = await res.json();
+
+    if (!data.success) {
+      alert(data.message || 'No fue posible eliminar.');
+      return;
     }
 
-    function toISODate(ddmmyyyy) {
-      if (!ddmmyyyy || !ddmmyyyy.includes('-')) return '';
-      const parts = ddmmyyyy.split('-');
-      if (parts.length !== 3) return '';
-      return `${parts[2]}-${parts[1]}-${parts[0]}`;
+    await loadData();
+    alert(data.message);
+  }
+
+  async function openMovilesSchedule() {
+    const tab = window.open('', '_blank');
+
+    tab.document.write(`
+      <html>
+      <head>
+        <title>Cargando programación de móviles...</title>
+        <style>
+          body{
+            font-family:Arial,sans-serif;
+            background:#f4f7fb;
+            display:flex;
+            justify-content:center;
+            align-items:center;
+            height:100vh;
+            margin:0;
+          }
+          .box{
+            text-align:center;
+            background:white;
+            padding:30px;
+            border-radius:14px;
+            box-shadow:0 10px 30px rgba(0,0,0,.08);
+          }
+          .spinner{
+            width:40px;
+            height:40px;
+            border:4px solid #e5e7eb;
+            border-top:4px solid #2563eb;
+            border-radius:50%;
+            animation:spin 1s linear infinite;
+            margin:auto;
+            margin-bottom:15px;
+          }
+          @keyframes spin{
+            from{transform:rotate(0deg)}
+            to{transform:rotate(360deg)}
+          }
+        </style>
+      </head>
+      <body>
+        <div class="box">
+          <div class="spinner"></div>
+          <div>Cargando programación semanal...</div>
+        </div>
+      </body>
+      </html>
+    `);
+    tab.document.close();
+
+    try {
+      const semanaActual = getCurrentWeekValue();
+
+      const res = await fetch(API, {
+        method: 'POST',
+        body: JSON.stringify({
+          action: 'getMovilProgramacion',
+          semana: semanaActual
+        })
+      });
+
+      const data = await res.json();
+
+      if (!data.success) {
+        tab.document.body.innerHTML = '<div style="padding:20px;font-family:Arial;">No fue posible obtener la programación.</div>';
+        return;
+      }
+
+      const currentUserData = JSON.stringify(currentUser || {});
+      const apiUrl = API;
+
+      let html = `
+      <html>
+      <head>
+        <title>Programación semanal de móviles</title>
+        <style>
+          body{
+            font-family:Arial,sans-serif;
+            margin:0;
+            padding:24px;
+            background:#f4f7fb;
+            color:#1f2937;
+          }
+          h1{margin:0 0 6px 0}
+          .subtitle{color:#6b7280;margin-bottom:20px}
+          .topbar{
+            display:flex;
+            justify-content:space-between;
+            align-items:end;
+            gap:16px;
+            flex-wrap:wrap;
+            margin-bottom:20px;
+          }
+          .btn{
+            border:none;
+            border-radius:10px;
+            padding:10px 14px;
+            font-weight:bold;
+            cursor:pointer;
+          }
+          .btn-primary{background:#2563eb;color:#fff}
+          .btn-secondary{background:#eef2f7;color:#1f2937}
+          .btn-danger{background:#dc2626;color:#fff}
+          .calendar{
+            display:grid;
+            grid-template-columns:repeat(7,1fr);
+            gap:12px;
+          }
+          .day-card{
+            background:#fff;
+            border:1px solid #dbe3ee;
+            border-radius:14px;
+            padding:14px;
+            min-height:220px;
+          }
+          .day-title{
+            font-size:18px;
+            font-weight:bold;
+            margin-bottom:12px;
+          }
+          .trip-card{
+            border:1px solid #e5e7eb;
+            border-radius:12px;
+            padding:12px;
+            margin-bottom:10px;
+            background:#f9fbff;
+          }
+          .trip-card div{margin-bottom:6px;font-size:14px}
+          .trip-actions{
+            display:flex;
+            gap:8px;
+            flex-wrap:wrap;
+            margin-top:10px;
+          }
+          .empty{color:#6b7280;font-size:14px}
+          .modal-backdrop{
+            position:fixed;
+            inset:0;
+            background:rgba(15,23,42,.45);
+            display:none;
+            justify-content:center;
+            align-items:center;
+            padding:18px;
+            z-index:9999;
+          }
+          .modal{
+            background:#fff;
+            width:100%;
+            max-width:900px;
+            max-height:92vh;
+            overflow:auto;
+            border-radius:18px;
+            padding:24px;
+          }
+          .grid-2{
+            display:grid;
+            grid-template-columns:repeat(2,1fr);
+            gap:14px;
+          }
+          input,select,textarea{
+            width:100%;
+            padding:12px;
+            border:1px solid #cdd7e3;
+            border-radius:10px;
+            font-size:14px;
+          }
+          textarea{min-height:90px;resize:vertical}
+          .modal-actions{
+            display:flex;
+            justify-content:flex-end;
+            gap:10px;
+            margin-top:18px;
+          }
+          .error-text{
+            color:#dc2626;
+            font-size:13px;
+            margin-top:8px;
+          }
+          @media (max-width:1200px){
+            .calendar{grid-template-columns:1fr}
+            .grid-2{grid-template-columns:1fr}
+          }
+        </style>
+      </head>
+      <body>
+        <div class="topbar">
+          <div>
+            <h1>Programación semanal de móviles</h1>
+            <div class="subtitle">Planificación de salidas y retornos de móviles del establecimiento.</div>
+          </div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <input type="week" id="weekFilter" value="${escapeHtml(semanaActual)}" onchange="loadMoviles()" style="width:180px;">
+            <button class="btn btn-secondary" onclick="loadMoviles()">Actualizar</button>
+            <button class="btn btn-primary" onclick="openMovilModal()">+ Nueva programación</button>
+          </div>
+        </div>
+
+        <div id="calendarContainer"></div>
+
+        <div id="movilModalBackdrop" class="modal-backdrop">
+          <div class="modal">
+            <h3 id="movilModalTitle">Nueva programación</h3>
+            <form id="movilForm" onsubmit="saveMovilProgramacion(event)">
+              <input type="hidden" id="movilId" />
+
+              <div class="grid-2">
+                <div>
+                  <label>Semana</label>
+                  <input type="week" id="movilSemana" required />
+                </div>
+
+                <div>
+                  <label>Fecha</label>
+                  <input type="date" id="movilFecha" required />
+                </div>
+
+                <div>
+                  <label>Día</label>
+                  <select id="movilDia" required>
+                    <option value="">Seleccione</option>
+                    <option>Lunes</option>
+                    <option>Martes</option>
+                    <option>Miércoles</option>
+                    <option>Jueves</option>
+                    <option>Viernes</option>
+                    <option>Sábado</option>
+                    <option>Domingo</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label>Lugar destino</label>
+                  <input type="text" id="movilDestino" required />
+                </div>
+
+                <div>
+                  <label>Hora salida</label>
+                  <input type="time" id="movilHoraSalida" required />
+                </div>
+
+                <div>
+                  <label>Hora retorno</label>
+                  <input type="time" id="movilHoraRetorno" required />
+                </div>
+
+                <div>
+                  <label>Cantidad pasajeros</label>
+                  <input type="number" id="movilPasajeros" min="0" required />
+                </div>
+
+                <div>
+                  <label>Chofer salida</label>
+                  <input type="text" id="movilChoferSalida" required />
+                </div>
+
+                <div>
+                  <label>Chofer retorno</label>
+                  <input type="text" id="movilChoferRetorno" required />
+                </div>
+
+                <div>
+                  <label>Móvil salida</label>
+                  <input type="text" id="movilSalida" required />
+                </div>
+
+                <div>
+                  <label>Patente salida</label>
+                  <input type="text" id="movilPatenteSalida" required />
+                </div>
+
+                <div>
+                  <label>Móvil retorno</label>
+                  <input type="text" id="movilRetorno" required />
+                </div>
+
+                <div>
+                  <label>Patente retorno</label>
+                  <input type="text" id="movilPatenteRetorno" required />
+                </div>
+
+                <div style="grid-column:1/-1;">
+                  <label>Observaciones</label>
+                  <textarea id="movilObservaciones"></textarea>
+                </div>
+              </div>
+
+              <div id="movilFormError" class="error-text" style="display:none;"></div>
+
+              <div class="modal-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeMovilModal()">Cancelar</button>
+                <button type="submit" class="btn btn-primary">Guardar</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <script>
+          const API = ${JSON.stringify(apiUrl)};
+          const currentUser = ${currentUserData};
+
+          function escapeHtml(text) {
+            return String(text || '')
+              .replace(/&/g, '&amp;')
+              .replace(/</g, '&lt;')
+              .replace(/>/g, '&gt;')
+              .replace(/"/g, '&quot;')
+              .replace(/'/g, '&#039;');
+          }
+
+          let programaciones = [];
+
+          async function loadMoviles() {
+            const semana = document.getElementById('weekFilter').value;
+
+            const res = await fetch(API, {
+              method: 'POST',
+              body: JSON.stringify({
+                action: 'getMovilProgramacion',
+                semana: semana
+              })
+            });
+
+            const data = await res.json();
+            programaciones = data.programacion || [];
+            renderCalendar();
+          }
+
+          function renderCalendar() {
+            const dias = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+            const container = document.getElementById('calendarContainer');
+
+            let html = '<div class="calendar">';
+
+            dias.forEach(dia => {
+              const porDia = programaciones
+                .filter(x => String(x.dia || '') === dia)
+                .sort((a, b) => String(a.horaSalida || '').localeCompare(String(b.horaSalida || '')));
+
+              html += '<div class="day-card">';
+              html += '<div class="day-title">' + dia + '</div>';
+
+              if (!porDia.length) {
+                html += '<div class="empty">Sin programación.</div>';
+              } else {
+                porDia.forEach(item => {
+                  html += \`
+                    <div class="trip-card">
+                      <div><strong>Fecha:</strong> \${escapeHtml(item.fecha)}</div>
+                      <div><strong>Hora salida:</strong> \${escapeHtml(item.horaSalida)}</div>
+                      <div><strong>Hora retorno:</strong> \${escapeHtml(item.horaRetorno)}</div>
+                      <div><strong>Lugar:</strong> \${escapeHtml(item.destino)}</div>
+                      <div><strong>Pasajeros:</strong> \${escapeHtml(item.pasajeros)}</div>
+                      <div><strong>Chofer salida:</strong> \${escapeHtml(item.choferSalida)}</div>
+                      <div><strong>Chofer retorno:</strong> \${escapeHtml(item.choferRetorno)}</div>
+                      <div><strong>Móvil salida:</strong> \${escapeHtml(item.movilSalida)} (\${escapeHtml(item.patenteSalida)})</div>
+                      <div><strong>Móvil retorno:</strong> \${escapeHtml(item.movilRetorno)} (\${escapeHtml(item.patenteRetorno)})</div>
+                      <div><strong>Observaciones:</strong> \${escapeHtml(item.observaciones || '-')}</div>
+                      <div class="trip-actions">
+                        <button class="btn btn-secondary" onclick="editMovil('\${item.id}')">Modificar</button>
+                        <button class="btn btn-danger" onclick="deleteMovil('\${item.id}')">Eliminar</button>
+                      </div>
+                    </div>
+                  \`;
+                });
+              }
+
+              html += '</div>';
+            });
+
+            html += '</div>';
+            container.innerHTML = html;
+          }
+
+          function openMovilModal() {
+            document.getElementById('movilModalTitle').textContent = 'Nueva programación';
+            document.getElementById('movilForm').reset();
+            document.getElementById('movilId').value = '';
+            document.getElementById('movilSemana').value = document.getElementById('weekFilter').value;
+            document.getElementById('movilFormError').style.display = 'none';
+            document.getElementById('movilModalBackdrop').style.display = 'flex';
+          }
+
+          function closeMovilModal() {
+            document.getElementById('movilModalBackdrop').style.display = 'none';
+          }
+
+          function editMovil(id) {
+            const item = programaciones.find(x => String(x.id) === String(id));
+            if (!item) return;
+
+            document.getElementById('movilModalTitle').textContent = 'Modificar programación';
+            document.getElementById('movilId').value = item.id || '';
+            document.getElementById('movilSemana').value = item.semana || '';
+            document.getElementById('movilFecha').value = item.fecha || '';
+            document.getElementById('movilDia').value = item.dia || '';
+            document.getElementById('movilHoraSalida').value = item.horaSalida || '';
+            document.getElementById('movilHoraRetorno').value = item.horaRetorno || '';
+            document.getElementById('movilDestino').value = item.destino || '';
+            document.getElementById('movilPasajeros').value = item.pasajeros || '';
+            document.getElementById('movilChoferSalida').value = item.choferSalida || '';
+            document.getElementById('movilChoferRetorno').value = item.choferRetorno || '';
+            document.getElementById('movilSalida').value = item.movilSalida || '';
+            document.getElementById('movilPatenteSalida').value = item.patenteSalida || '';
+            document.getElementById('movilRetorno').value = item.movilRetorno || '';
+            document.getElementById('movilPatenteRetorno').value = item.patenteRetorno || '';
+            document.getElementById('movilObservaciones').value = item.observaciones || '';
+            document.getElementById('movilFormError').style.display = 'none';
+            document.getElementById('movilModalBackdrop').style.display = 'flex';
+          }
+
+          async function saveMovilProgramacion(event) {
+            event.preventDefault();
+
+            const payload = {
+              id: document.getElementById('movilId').value.trim(),
+              semana: document.getElementById('movilSemana').value,
+              fecha: document.getElementById('movilFecha').value,
+              dia: document.getElementById('movilDia').value,
+              horaSalida: document.getElementById('movilHoraSalida').value,
+              horaRetorno: document.getElementById('movilHoraRetorno').value,
+              destino: document.getElementById('movilDestino').value.trim(),
+              pasajeros: document.getElementById('movilPasajeros').value.trim(),
+              choferSalida: document.getElementById('movilChoferSalida').value.trim(),
+              choferRetorno: document.getElementById('movilChoferRetorno').value.trim(),
+              movilSalida: document.getElementById('movilSalida').value.trim(),
+              patenteSalida: document.getElementById('movilPatenteSalida').value.trim(),
+              movilRetorno: document.getElementById('movilRetorno').value.trim(),
+              patenteRetorno: document.getElementById('movilPatenteRetorno').value.trim(),
+              observaciones: document.getElementById('movilObservaciones').value.trim()
+            };
+
+            const res = await fetch(API, {
+              method: 'POST',
+              body: JSON.stringify({
+                action: 'saveMovilProgramacion',
+                user: currentUser,
+                programacion: payload
+              })
+            });
+
+            const data = await res.json();
+
+            if (!data.success) {
+              const errorEl = document.getElementById('movilFormError');
+              errorEl.textContent = data.message || 'No fue posible guardar.';
+              errorEl.style.display = 'block';
+              return;
+            }
+
+            closeMovilModal();
+            await loadMoviles();
+            alert(data.message);
+          }
+
+          async function deleteMovil(id) {
+            if (!confirm('¿Desea eliminar esta programación?')) return;
+
+            const res = await fetch(API, {
+              method: 'POST',
+              body: JSON.stringify({
+                action: 'deleteMovilProgramacion',
+                user: currentUser,
+                id: id
+              })
+            });
+
+            const data = await res.json();
+
+            if (!data.success) {
+              alert(data.message || 'No fue posible eliminar.');
+              return;
+            }
+
+            await loadMoviles();
+            alert(data.message);
+          }
+
+          loadMoviles();
+        </script>
+      </body>
+      </html>
+      `;
+
+      tab.document.open();
+      tab.document.write(html);
+      tab.document.close();
+
+    } catch (error) {
+      tab.document.body.innerHTML = '<div style="padding:20px;font-family:Arial;">No fue posible conectar con el sistema.</div>';
     }
+  }
+</script>  
 
-    function formatearFecha(fecha) {
-  if (!fecha || fecha === 'Sin fecha registrada') return 'Sin fecha registrada';
-
-  const f = new Date(fecha);
-
-  if (isNaN(f)) return fecha;
-
-  return f.toLocaleString('es-CL', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  });
-}
-    
-  </script>
-  <div id="uploadModalBackdrop" class="modal-backdrop hidden">
+<div id="uploadModalBackdrop" class="modal-backdrop hidden">
   <div class="modal" style="max-width:700px;">
     <h3>Subir archivo</h3>
     <input type="hidden" id="uploadEquipmentId" />
