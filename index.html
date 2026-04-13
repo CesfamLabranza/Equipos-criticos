@@ -717,7 +717,9 @@ async function viewFiles(id) {
       <h2>Archivos del equipo</h2>
     `;
 
-archivos.forEach(a => {
+archivos
+  .sort((a, b) => new Date(b.fecha || 0) - new Date(a.fecha || 0))
+  .forEach(a => {
   html += `
     <div class="card">
       <div class="file-date">Subido el: ${formatearFecha(a.fecha)}</div>
