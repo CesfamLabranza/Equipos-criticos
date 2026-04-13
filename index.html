@@ -1313,13 +1313,7 @@
   }
 
 async function openMovilesSchedule() {
-  const tab = window.open('about:blank', '_blank');
-
-  if (!tab) {
-    alert('El navegador bloqueó la apertura de la pestaña. Se abrirá en esta misma ventana.');
-    window.location.href = '#';
-    return;
-  }
+  const tab = window.open('', '_blank');
 
     tab.document.write(`
       <html>
@@ -1614,7 +1608,7 @@ async function openMovilesSchedule() {
           </div>
         </div>
 
-<scr` + `ipt>
+<script>
   const API = ${JSON.stringify(apiUrl)};
   const currentUser = ${currentUserData};
 
@@ -1809,7 +1803,7 @@ async function openMovilesSchedule() {
       tab.document.body.innerHTML = '<div style="padding:20px;font-family:Arial;">No fue posible conectar con el sistema.</div>';
     }
   }
-</scr` + `ipt> 
+</script>
 
 <div id="uploadModalBackdrop" class="modal-backdrop hidden">
   <div class="modal" style="max-width:700px;">
