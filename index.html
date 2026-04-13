@@ -1312,8 +1312,14 @@
     alert(data.message);
   }
 
-  async function openMovilesSchedule() {
-    const tab = window.open('', '_blank');
+async function openMovilesSchedule() {
+  const tab = window.open('about:blank', '_blank');
+
+  if (!tab) {
+    alert('El navegador bloqueó la apertura de la pestaña. Se abrirá en esta misma ventana.');
+    window.location.href = '#';
+    return;
+  }
 
     tab.document.write(`
       <html>
