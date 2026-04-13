@@ -720,7 +720,7 @@ async function viewFiles(id) {
 archivos.forEach(a => {
   html += `
     <div class="card">
-      <div class="file-date">Subido el: ${a.fecha || 'Sin fecha registrada'}</div>
+      <div class="file-date">Subido el: ${formatearFecha(a.fecha)}</div>
       <a href="${a.url}" target="_blank">📎 ${a.nombre}</a>
     </div>
   `;
@@ -1316,6 +1316,23 @@ function editEquipment(id) {
       if (parts.length !== 3) return '';
       return `${parts[2]}-${parts[1]}-${parts[0]}`;
     }
+
+    function formatearFecha(fecha) {
+  if (!fecha || fecha === 'Sin fecha registrada') return 'Sin fecha registrada';
+
+  const f = new Date(fecha);
+
+  if (isNaN(f)) return fecha;
+
+  return f.toLocaleString('es-CL', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+}
+    
   </script>
   <div id="uploadModalBackdrop" class="modal-backdrop hidden">
   <div class="modal" style="max-width:700px;">
