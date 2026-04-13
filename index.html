@@ -688,37 +688,43 @@ async function viewFiles(id) {
     <html>
     <head>
       <title>Archivos del equipo</title>
-      <style>
-        body{
-          font-family:Arial;
-          padding:20px;
-          background:#f4f7fb;
-        }
-        .card{
-          background:white;
-          padding:15px;
-          border-radius:10px;
-          margin-bottom:10px;
-          border:1px solid #e5e7eb;
-        }
-        a{
-          text-decoration:none;
-          color:#2563eb;
-          font-weight:bold;
-        }
-      </style>
+<style>
+  body{
+    font-family:Arial;
+    padding:20px;
+    background:#f4f7fb;
+  }
+  .card{
+    background:white;
+    padding:15px;
+    border-radius:10px;
+    margin-bottom:10px;
+    border:1px solid #e5e7eb;
+  }
+  a{
+    text-decoration:none;
+    color:#2563eb;
+    font-weight:bold;
+  }
+  .file-date{
+    font-size:13px;
+    color:#6b7280;
+    margin-bottom:8px;
+  }
+</style>
     </head>
     <body>
       <h2>Archivos del equipo</h2>
     `;
 
-    archivos.forEach(a => {
-      html += `
-        <div class="card">
-          <a href="${a.url}" target="_blank">📎 ${a.nombre}</a>
-        </div>
-      `;
-    });
+archivos.forEach(a => {
+  html += `
+    <div class="card">
+      <div class="file-date">Subido el: ${a.fecha || 'Sin fecha registrada'}</div>
+      <a href="${a.url}" target="_blank">📎 ${a.nombre}</a>
+    </div>
+  `;
+});
 
     html += `</body></html>`;
 
