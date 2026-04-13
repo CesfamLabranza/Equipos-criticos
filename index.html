@@ -227,6 +227,7 @@
   + Nuevo equipo
 </button>
         <button onclick="setView('historial')">Historial (Equipos)</button>
+        <button type="button" onclick="openMovilesSchedule()">Programación móviles</button>
       </div>
 
       <div class="summary-box">
@@ -762,6 +763,509 @@ archivos
       renderAll();
     }
 
+async function openMovilesSchedule() {
+  const tab = window.open('', '_blank');
+
+  tab.document.write(`
+    <html>
+    <head>
+      <title>Cargando programación de móviles...</title>
+      <style>
+        body{
+          font-family:Arial,sans-serif;
+          background:#f4f7fb;
+          display:flex;
+          justify-content:center;
+          align-items:center;
+          height:100vh;
+          margin:0;
+        }
+        .box{
+          text-align:center;
+          background:white;
+          padding:30px;
+          border-radius:14px;
+          box-shadow:0 10px 30px rgba(0,0,0,.08);
+        }
+        .spinner{
+          width:40px;
+          height:40px;
+          border:4px solid #e5e7eb;
+          border-top:4px solid #2563eb;
+          border-radius:50%;
+          animation:spin 1s linear infinite;
+          margin:auto;
+          margin-bottom:15px;
+        }
+        @keyframes spin{
+          from{transform:rotate(0deg)}
+          to{transform:rotate(360deg)}
+        }
+      </style>
+    </head>
+    <body>
+      <div class="box">
+        <div class="spinner"></div>
+        <div>Cargando programación semanal...</div>
+      </div>
+    </body>
+    </html>
+  `);
+  tab.document.close();
+
+  try {
+    const semanaActual = getCurrentWeekValue();
+
+    const res = await fetch(API, {
+      method: 'POST',
+      body: JSON.stringify({
+        action: 'getMovilProgramacion',
+        semana: semanaActual
+      })
+    });
+
+    const data = await res.json();
+    const items = data.programacion || [];
+    const dias = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+
+    const currentUserData = JSON.stringify(currentUser);
+    const apiUrl = API;
+
+    let html = `
+    <html>
+    <head>
+      <title>Programación semanal de móviles</title>
+      <style>
+        body{
+          font-family:Arial,sans-serif;
+          margin:0;
+          padding:24px;
+          background:#f4f7fb;
+          color:#1f2937;
+        }
+        h1{margin:0 0 6px 0}
+        .subtitle{color:#6b7280;margin-bottom:20px}
+        .topbar{
+          display:flex;
+          justify-content:space-between;
+          align-items:end;
+          gap:16px;
+          flex-wrap:wrap;
+          margin-bottom:20px;
+        }
+        .btn{
+          border:none;
+          border-radius:10px;
+          padding:10px 14px;
+          font-weight:bold;
+          cursor:pointer;
+        }
+        .btn-primary{background:#2563eb;color:#fff}
+        .btn-secondary{background:#eef2f7;color:#1f2937}
+        .btn-danger{background:#dc2626;color:#fff}
+        .week-box{
+          background:#fff;
+          border:1px solid #dbe3ee;
+          border-radius:14px;
+          padding:14px;
+        }
+        .calendar{
+          display:grid;
+          grid-template-columns:repeat(7,1fr);
+          gap:12px;
+        }
+        .day-card{
+          background:#fff;
+          border:1px solid #dbe3ee;
+          border-radius:14px;
+          padding:14px;
+          min-height:220px;
+        }
+        .day-title{
+          font-size:18px;
+          font-weight:bold;
+          margin-bottom:12px;
+        }
+        .trip-card{
+          border:1px solid #e5e7eb;
+          border-radius:12px;
+          padding:12px;
+          margin-bottom:10px;
+          background:#f9fbff;
+        }
+        .trip-card div{margin-bottom:6px;font-size:14px}
+        .trip-actions{
+          display:flex;
+          gap:8px;
+          flex-wrap:wrap;
+          margin-top:10px;
+        }
+        .empty{color:#6b7280;font-size:14px}
+        .modal-backdrop{
+          position:fixed;
+          inset:0;
+          background:rgba(15,23,42,.45);
+          display:none;
+          justify-content:center;
+          align-items:center;
+          padding:18px;
+          z-index:9999;
+        }
+        .modal{
+          background:#fff;
+          width:100%;
+          max-width:900px;
+          max-height:92vh;
+          overflow:auto;
+          border-radius:18px;
+          padding:24px;
+        }
+        .grid-2{
+          display:grid;
+          grid-template-columns:repeat(2,1fr);
+          gap:14px;
+        }
+        input,select,textarea{
+          width:100%;
+          padding:12px;
+          border:1px solid #cdd7e3;
+          border-radius:10px;
+          font-size:14px;
+        }
+        textarea{min-height:90px;resize:vertical}
+        .modal-actions{
+          display:flex;
+          justify-content:flex-end;
+          gap:10px;
+          margin-top:18px;
+        }
+        .error-text{
+          color:#dc2626;
+          font-size:13px;
+          margin-top:8px;
+        }
+        @media (max-width:1200px){
+          .calendar{grid-template-columns:1fr}
+          .grid-2{grid-template-columns:1fr}
+        }
+      </style>
+    </head>
+    <body>
+      <div class="topbar">
+        <div>
+          <h1>Programación semanal de móviles</h1>
+          <div class="subtitle">Planificación de salidas y retornos de móviles del establecimiento.</div>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <input type="week" id="weekFilter" value="${escapeHtml(semanaActual)}" onchange="loadMoviles()" style="width:180px;">
+          <button class="btn btn-secondary" onclick="loadMoviles()">Actualizar</button>
+          <button class="btn btn-primary" onclick="openMovilModal()">+ Nueva programación</button>
+        </div>
+      </div>
+
+      <div id="calendarContainer"></div>
+
+      <div id="movilModalBackdrop" class="modal-backdrop">
+        <div class="modal">
+          <h3 id="movilModalTitle">Nueva programación</h3>
+          <form id="movilForm" onsubmit="saveMovilProgramacion(event)">
+            <input type="hidden" id="movilId" />
+
+            <div class="grid-2">
+              <div>
+                <label>Semana</label>
+                <input type="week" id="movilSemana" required />
+              </div>
+
+              <div>
+                <label>Fecha</label>
+                <input type="date" id="movilFecha" required />
+              </div>
+
+              <div>
+                <label>Día</label>
+                <select id="movilDia" required>
+                  <option value="">Seleccione</option>
+                  <option>Lunes</option>
+                  <option>Martes</option>
+                  <option>Miércoles</option>
+                  <option>Jueves</option>
+                  <option>Viernes</option>
+                  <option>Sábado</option>
+                  <option>Domingo</option>
+                </select>
+              </div>
+
+              <div>
+                <label>Lugar destino</label>
+                <input type="text" id="movilDestino" required />
+              </div>
+
+              <div>
+                <label>Hora salida</label>
+                <input type="time" id="movilHoraSalida" required />
+              </div>
+
+              <div>
+                <label>Hora retorno</label>
+                <input type="time" id="movilHoraRetorno" required />
+              </div>
+
+              <div>
+                <label>Cantidad pasajeros</label>
+                <input type="number" id="movilPasajeros" min="0" required />
+              </div>
+
+              <div>
+                <label>Chofer salida</label>
+                <input type="text" id="movilChoferSalida" required />
+              </div>
+
+              <div>
+                <label>Chofer retorno</label>
+                <input type="text" id="movilChoferRetorno" required />
+              </div>
+
+              <div>
+                <label>Móvil salida</label>
+                <input type="text" id="movilSalida" required />
+              </div>
+
+              <div>
+                <label>Patente salida</label>
+                <input type="text" id="movilPatenteSalida" required />
+              </div>
+
+              <div>
+                <label>Móvil retorno</label>
+                <input type="text" id="movilRetorno" required />
+              </div>
+
+              <div>
+                <label>Patente retorno</label>
+                <input type="text" id="movilPatenteRetorno" required />
+              </div>
+
+              <div style="grid-column:1/-1;">
+                <label>Observaciones</label>
+                <textarea id="movilObservaciones"></textarea>
+              </div>
+            </div>
+
+            <div id="movilFormError" class="error-text" style="display:none;"></div>
+
+            <div class="modal-actions">
+              <button type="button" class="btn btn-secondary" onclick="closeMovilModal()">Cancelar</button>
+              <button type="submit" class="btn btn-primary">Guardar</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <script>
+        const API = ${JSON.stringify(apiUrl)};
+        const currentUser = ${currentUserData};
+
+        function escapeHtml(text) {
+          return String(text || '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+        }
+
+        let programaciones = [];
+
+        async function loadMoviles() {
+          const semana = document.getElementById('weekFilter').value;
+
+          const res = await fetch(API, {
+            method: 'POST',
+            body: JSON.stringify({
+              action: 'getMovilProgramacion',
+              semana: semana
+            })
+          });
+
+          const data = await res.json();
+          programaciones = data.programacion || [];
+          renderCalendar();
+        }
+
+        function renderCalendar() {
+          const dias = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+          const container = document.getElementById('calendarContainer');
+
+          let html = '<div class="calendar">';
+
+          dias.forEach(dia => {
+            const porDia = programaciones.filter(x => String(x.dia || '') === dia);
+
+            html += '<div class="day-card">';
+            html += '<div class="day-title">' + dia + '</div>';
+
+            if (!porDia.length) {
+              html += '<div class="empty">Sin programación.</div>';
+            } else {
+              porDia.forEach(item => {
+                html += \`
+                  <div class="trip-card">
+                    <div><strong>Fecha:</strong> \${escapeHtml(item.fecha)}</div>
+                    <div><strong>Hora salida:</strong> \${escapeHtml(item.horaSalida)}</div>
+                    <div><strong>Hora retorno:</strong> \${escapeHtml(item.horaRetorno)}</div>
+                    <div><strong>Lugar:</strong> \${escapeHtml(item.destino)}</div>
+                    <div><strong>Pasajeros:</strong> \${escapeHtml(item.pasajeros)}</div>
+                    <div><strong>Chofer salida:</strong> \${escapeHtml(item.choferSalida)}</div>
+                    <div><strong>Chofer retorno:</strong> \${escapeHtml(item.choferRetorno)}</div>
+                    <div><strong>Móvil salida:</strong> \${escapeHtml(item.movilSalida)} (\${escapeHtml(item.patenteSalida)})</div>
+                    <div><strong>Móvil retorno:</strong> \${escapeHtml(item.movilRetorno)} (\${escapeHtml(item.patenteRetorno)})</div>
+                    <div><strong>Observaciones:</strong> \${escapeHtml(item.observaciones || '-')}</div>
+                    <div class="trip-actions">
+                      <button class="btn btn-secondary" onclick="editMovil('\${item.id}')">Modificar</button>
+                      <button class="btn btn-danger" onclick="deleteMovil('\${item.id}')">Eliminar</button>
+                    </div>
+                  </div>
+                \`;
+              });
+            }
+
+            html += '</div>';
+          });
+
+          html += '</div>';
+          container.innerHTML = html;
+        }
+
+        function openMovilModal() {
+          document.getElementById('movilModalTitle').textContent = 'Nueva programación';
+          document.getElementById('movilForm').reset();
+          document.getElementById('movilId').value = '';
+          document.getElementById('movilSemana').value = document.getElementById('weekFilter').value;
+          document.getElementById('movilFormError').style.display = 'none';
+          document.getElementById('movilModalBackdrop').style.display = 'flex';
+        }
+
+        function closeMovilModal() {
+          document.getElementById('movilModalBackdrop').style.display = 'none';
+        }
+
+        function editMovil(id) {
+          const item = programaciones.find(x => String(x.id) === String(id));
+          if (!item) return;
+
+          document.getElementById('movilModalTitle').textContent = 'Modificar programación';
+          document.getElementById('movilId').value = item.id || '';
+          document.getElementById('movilSemana').value = item.semana || '';
+          document.getElementById('movilFecha').value = item.fecha || '';
+          document.getElementById('movilDia').value = item.dia || '';
+          document.getElementById('movilHoraSalida').value = item.horaSalida || '';
+          document.getElementById('movilHoraRetorno').value = item.horaRetorno || '';
+          document.getElementById('movilDestino').value = item.destino || '';
+          document.getElementById('movilPasajeros').value = item.pasajeros || '';
+          document.getElementById('movilChoferSalida').value = item.choferSalida || '';
+          document.getElementById('movilChoferRetorno').value = item.choferRetorno || '';
+          document.getElementById('movilSalida').value = item.movilSalida || '';
+          document.getElementById('movilPatenteSalida').value = item.patenteSalida || '';
+          document.getElementById('movilRetorno').value = item.movilRetorno || '';
+          document.getElementById('movilPatenteRetorno').value = item.patenteRetorno || '';
+          document.getElementById('movilObservaciones').value = item.observaciones || '';
+          document.getElementById('movilFormError').style.display = 'none';
+          document.getElementById('movilModalBackdrop').style.display = 'flex';
+        }
+
+        async function saveMovilProgramacion(event) {
+          event.preventDefault();
+
+          const payload = {
+            id: document.getElementById('movilId').value.trim(),
+            semana: document.getElementById('movilSemana').value,
+            fecha: document.getElementById('movilFecha').value,
+            dia: document.getElementById('movilDia').value,
+            horaSalida: document.getElementById('movilHoraSalida').value,
+            horaRetorno: document.getElementById('movilHoraRetorno').value,
+            destino: document.getElementById('movilDestino').value.trim(),
+            pasajeros: document.getElementById('movilPasajeros').value.trim(),
+            choferSalida: document.getElementById('movilChoferSalida').value.trim(),
+            choferRetorno: document.getElementById('movilChoferRetorno').value.trim(),
+            movilSalida: document.getElementById('movilSalida').value.trim(),
+            patenteSalida: document.getElementById('movilPatenteSalida').value.trim(),
+            movilRetorno: document.getElementById('movilRetorno').value.trim(),
+            patenteRetorno: document.getElementById('movilPatenteRetorno').value.trim(),
+            observaciones: document.getElementById('movilObservaciones').value.trim()
+          };
+
+          const res = await fetch(API, {
+            method: 'POST',
+            body: JSON.stringify({
+              action: 'saveMovilProgramacion',
+              user: currentUser,
+              programacion: payload
+            })
+          });
+
+          const data = await res.json();
+
+          if (!data.success) {
+            const errorEl = document.getElementById('movilFormError');
+            errorEl.textContent = data.message || 'No fue posible guardar.';
+            errorEl.style.display = 'block';
+            return;
+          }
+
+          closeMovilModal();
+          await loadMoviles();
+          alert(data.message);
+        }
+
+        async function deleteMovil(id) {
+          if (!confirm('¿Desea eliminar esta programación?')) return;
+
+          const res = await fetch(API, {
+            method: 'POST',
+            body: JSON.stringify({
+              action: 'deleteMovilProgramacion',
+              user: currentUser,
+              id: id
+            })
+          });
+
+          const data = await res.json();
+
+          if (!data.success) {
+            alert(data.message || 'No fue posible eliminar.');
+            return;
+          }
+
+          await loadMoviles();
+          alert(data.message);
+        }
+
+        loadMoviles();
+      </script>
+    </body>
+    </html>
+    `;
+
+    tab.document.open();
+    tab.document.write(html);
+    tab.document.close();
+
+  } catch (error) {
+    tab.document.body.innerHTML = '<div style="padding:20px;font-family:Arial;">No fue posible conectar con el sistema.</div>';
+  }
+}
+
+function getCurrentWeekValue() {
+  const now = new Date();
+  const date = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
+  const dayNum = date.getUTCDay() || 7;
+  date.setUTCDate(date.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1));
+  const weekNo = Math.ceil((((date - yearStart) / 86400000) + 1) / 7);
+  return `${date.getUTCFullYear()}-W${String(weekNo).padStart(2, '0')}`;
+}
+    
     function renderAll() {
       renderSummary();
       renderDashboard();
