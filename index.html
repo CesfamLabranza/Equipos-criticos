@@ -218,16 +218,17 @@
 <p style="color:#c8d2e3;">CESFAM Labranza</p>
       </div>
 
-      <div class="menu">
-        <button onclick="setView('dashboard')">Inicio</button>
-        <button onclick="setView('equipos')">Equipos críticos</button>
-        <button onclick="setView('equiposPrimordiales')">Equipos primordiales</button>
-        <button onclick="setView('equiposGenerales')">Equipos generales</button>
-        <button type="button" class="btn btn-primary admin-only" onclick="openNewEquipmentModal(); return false;">
-  + Nuevo equipo
-</button>
-        <button onclick="setView('historial')">Historial (Equipos)</button>
-      </div>
+<div class="menu">
+  <button onclick="setView('dashboard')">Inicio</button>
+  <button onclick="setView('equipos')">Equipos críticos</button>
+  <button onclick="setView('equiposPrimordiales')">Equipos primordiales</button>
+  <button onclick="setView('equiposGenerales')">Equipos generales</button>
+  <button type="button" class="btn btn-primary admin-only" onclick="openNewEquipmentModal(); return false;">
+    + Nuevo equipo
+  </button>
+  <button onclick="setView('historial')">Historial (Equipos)</button>
+  <button onclick="openMovilesTab()">Programación de móviles</button>
+</div>
 
       <div class="summary-box">
         <h3>Resumen semáforos</h3>
@@ -1334,7 +1335,9 @@ function editEquipment(id) {
     minute: '2-digit'
   });
 }
-    
+function openMovilesTab() {
+  window.open('https://cesfamlabranza.github.io/programacion-moviles/', '_blank');
+}
   </script>
   <div id="uploadModalBackdrop" class="modal-backdrop hidden">
   <div class="modal" style="max-width:700px;">
