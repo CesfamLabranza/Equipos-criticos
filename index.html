@@ -1338,6 +1338,11 @@ function editEquipment(id) {
 function openMovilesTab() {
   window.open('https://cesfamlabranza.github.io/programacion-moviles-cesfam/', '_blank');
 }
+
+function openMovilesTab() {
+  const userData = encodeURIComponent(JSON.stringify(currentUser));
+  window.open(`https://cesfamlabranza.github.io/programacion-moviles/?user=${userData}`, '_blank');
+}
   </script>
   <div id="uploadModalBackdrop" class="modal-backdrop hidden">
   <div class="modal" style="max-width:700px;">
