@@ -1336,8 +1336,11 @@ function editEquipment(id) {
   });
 }
 function openMovilesTab() {
+  console.log('currentUser:', currentUser);
   const userData = encodeURIComponent(JSON.stringify(currentUser));
-  window.open(`https://cesfamlabranza.github.io/programacion-moviles-cesfam/?user=${userData}`, '_blank');
+  const url = `https://cesfamlabranza.github.io/programacion-moviles-cesfam/?user=${userData}`;
+  console.log('URL móviles:', url);
+  window.open(url, '_blank');
 }
   </script>
   <div id="uploadModalBackdrop" class="modal-backdrop hidden">
