@@ -918,7 +918,42 @@ ${isAdmin() ? `<button type="button" class="delete-btn full-action" onclick="del
   }).join('');
 }
 
-container.innerHTML = historyItems.map(item => `
+function renderHistory() {
+  const container = document.getElementById('historyList');
+
+  if (!historyItems.length) {
+    container.innerHTML = '<div>No existen registros.</div>';
+    return;
+  }
+
+  container.innerHTML = historyItems.map(item => `
+    <div class="card" style="margin-bottom:10px;">
+      <strong>${escapeHtml(item.accion)}</strong>
+
+      <div style="margin-top:8px;">
+        ${escapeHtml(item.detalle)}
+      </div>
+
+      <div style="margin-top:8px;color:#6b7280;">
+        ${escapeHtml(item.fecha)} | ${escapeHtml(item.usuario)}
+      </div>
+
+      ${
+        item.detalle && item.detalle.toLowerCase().includes('eliminó')
+        ? `<button 
+             style="margin-top:10px;background:#16a34a;color:#fff;border:none;padding:8px 12px;border-radius:8px;cursor:pointer;"
+             onclick="restoreEquipo('${extraerId(item.detalle)}')">
+             Restaurar
+           </button>`
+        : ''
+      }
+    </div>
+  `).join('');
+}
+    function extraerId(texto) {
+  const match = String(texto || '').match(/\((.*?)\)/);
+  return match ? match[1] : '';
+}
   <div class="card" style="margin-bottom:10px;">
     
     <strong>${escapeHtml(item.accion)}</strong>
@@ -1243,11 +1278,16 @@ function editEquipment(id) {
 }
 
 async function restoreEquipo(id) {
+  if (!id) {
+    alert('No se pudo identificar el equipo a restaurar.');
+    return;
+  }
+
   const confirmacion = confirm("¿Desea restaurar este equipo?");
   if (!confirmacion) return;
 
   try {
-    const res = await fetch(API_URL, {
+    const res = await fetch(API, {
       method: 'POST',
       body: JSON.stringify({
         action: 'restoreEquipo',
@@ -1264,8 +1304,8 @@ async function restoreEquipo(id) {
     }
 
     alert('Equipo restaurado correctamente.');
-    loadEquipos(); // refresca lista
-    loadHistory(); // refresca historial
+    await loadData();
+    setView('historial');
 
   } catch (e) {
     alert('Error de conexión.');
