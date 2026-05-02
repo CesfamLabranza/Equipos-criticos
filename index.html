@@ -918,21 +918,31 @@ ${isAdmin() ? `<button type="button" class="delete-btn full-action" onclick="del
   }).join('');
 }
 
-    function renderHistory() {
-      const container = document.getElementById('historyList');
+container.innerHTML = historyItems.map(item => `
+  <div class="card" style="margin-bottom:10px;">
+    
+    <strong>${escapeHtml(item.accion)}</strong>
 
-      if (!historyItems.length) {
-        container.innerHTML = '<div>No existen registros.</div>';
-        return;
-      }
+    <div style="margin-top:8px;">
+      ${escapeHtml(item.detalle)}
+    </div>
 
-      container.innerHTML = historyItems.map(item => `
-        <div class="card" style="margin-bottom:10px;">
-          <strong>${escapeHtml(item.accion)}</strong>
-          <div style="margin-top:8px;">${escapeHtml(item.detalle)}</div>
-          <div style="margin-top:8px;color:#6b7280;">${escapeHtml(item.fecha)} | ${escapeHtml(item.usuario)}</div>
-        </div>
-      `).join('');
+    <div style="margin-top:8px;color:#6b7280;">
+      ${escapeHtml(item.fecha)} | ${escapeHtml(item.usuario)}
+    </div>
+
+    ${
+      item.detalle && item.detalle.toLowerCase().includes('eliminó')
+      ? `<button 
+           style="margin-top:10px;background:#16a34a;color:#fff;border:none;padding:8px 12px;border-radius:8px;cursor:pointer;"
+           onclick="restoreEquipo('${extraerId(item.detalle)}')">
+           Restaurar
+         </button>`
+      : ''
+    }
+
+  </div>
+`).join('');
     }
 
 function setView(view) {
@@ -1231,6 +1241,37 @@ function editEquipment(id) {
   modal.classList.remove('hidden');
   modal.style.display = 'flex';
 }
+
+async function restoreEquipo(id) {
+  const confirmacion = confirm("¿Desea restaurar este equipo?");
+  if (!confirmacion) return;
+
+  try {
+    const res = await fetch(API_URL, {
+      method: 'POST',
+      body: JSON.stringify({
+        action: 'restoreEquipo',
+        id: id,
+        user: currentUser
+      })
+    });
+
+    const data = await res.json();
+
+    if (!data.success) {
+      alert(data.message || 'Error al restaurar.');
+      return;
+    }
+
+    alert('Equipo restaurado correctamente.');
+    loadEquipos(); // refresca lista
+    loadHistory(); // refresca historial
+
+  } catch (e) {
+    alert('Error de conexión.');
+  }
+}
+    
     async function saveEquipment(event) {
       event.preventDefault();
 
