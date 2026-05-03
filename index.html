@@ -311,9 +311,8 @@
   <th>Responsable</th>
   <th>Tipo</th>
   <th>Fecha mantención</th>
-  <th>Próxima atención</th>
-  <th>Primer día hábil</th>
-  <th>Último día hábil</th>
+<th>Próxima mantención</th>
+<th>Estado</th>
   <th>Estado</th>
   <th>Acciones</th>
 </tr>
@@ -346,9 +345,8 @@
   <th>Responsable</th>
   <th>Tipo</th>
   <th>Fecha mantención</th>
-  <th>Próxima atención</th>
-  <th>Primer día hábil</th>
-  <th>Último día hábil</th>
+<th>Próxima mantención</th>
+<th>Estado</th>
   <th>Estado</th>
   <th>Acciones</th>
 </tr>
@@ -381,9 +379,8 @@
   <th>Responsable</th>
   <th>Tipo</th>
   <th>Fecha mantención</th>
-  <th>Próxima atención</th>
-  <th>Primer día hábil</th>
-  <th>Último día hábil</th>
+<th>Próxima mantención</th>
+<th>Estado</th>
   <th>Estado</th>
   <th>Acciones</th>
 </tr>
@@ -432,15 +429,22 @@
 
           <div>
             <label>Frecuencia</label>
-            <select id="equipmentFrequency">
-              <option value="Mensual">Mensual</option>
-              <option value="Trimestral">Trimestral</option>
-              <option value="Semestral">Semestral</option>
-              <option value="Anual">Anual</option>
-              <option value="Otra">Otra</option>
-            </select>
+<select id="equipmentFrequency">
+  <option value="1">Mensual</option>
+  <option value="3">Trimestral</option>
+  <option value="6">Semestral</option>
+  <option value="12">Anual</option>
+  <option value="custom">Otra</option>
+</select>
           </div>
+<div id="customFrequencyContainer" style="display:none; margin-top:10px;">
+  <input type="number" id="customFrequencyValue" placeholder="Cantidad" />
 
+  <select id="customFrequencyUnit">
+    <option value="dias">Días</option>
+    <option value="meses">Meses</option>
+  </select>
+</div>
           <div>
             <label>Tipo de equipo</label>
             <select id="equipmentType" required>
@@ -453,28 +457,6 @@
           <div>
             <label>Fecha mantención</label>
             <input type="date" id="maintenanceDate" required />
-          </div>
-
-          <div>
-            <label>Próxima atención</label>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-              <select id="nextAttentionMonth" required>
-                <option value="">Mes</option>
-                <option value="01">01 - Enero</option>
-                <option value="02">02 - Febrero</option>
-                <option value="03">03 - Marzo</option>
-                <option value="04">04 - Abril</option>
-                <option value="05">05 - Mayo</option>
-                <option value="06">06 - Junio</option>
-                <option value="07">07 - Julio</option>
-                <option value="08">08 - Agosto</option>
-                <option value="09">09 - Septiembre</option>
-                <option value="10">10 - Octubre</option>
-                <option value="11">11 - Noviembre</option>
-                <option value="12">12 - Diciembre</option>
-              </select>
-              <input type="number" id="nextAttentionYear" min="2025" max="2100" placeholder="Año" required />
-            </div>
           </div>
 
 <div style="grid-column:1/-1;">
@@ -861,9 +843,6 @@ function renderEquipmentTable() {
       const rank = { rojo: 1, amarillo: 2, verde: 3 };
       return rank[a.estado] - rank[b.estado];
     }
-    if (sort === 'proxima') {
-      return (a.proximaAtencion || '').localeCompare(b.proximaAtencion || '');
-    }
     return (a.nombre || '').localeCompare(b.nombre || '', 'es');
   });
 
@@ -894,7 +873,6 @@ const tieneArchivos = item.archivos && item.archivos.trim() !== '';
     <td>${escapeHtml(item.responsable)}</td>
     <td>${escapeHtml(tipoTexto)}</td>
     <td>${escapeHtml(item.fechaMantencion)}</td>
-    <td>${escapeHtml(item.proximaAtencion)}</td>
     <td>${escapeHtml(item.primerDiaHabil)}</td>
     <td>${escapeHtml(item.ultimoDiaHabil)}</td>
     <td><span class="status-badge ${badgeClass}">${escapeHtml(item.estadoTexto)}</span></td>
@@ -1143,7 +1121,6 @@ async function viewEquipment(id) {
       <tr><th>Frecuencia</th><td>${escapeHtml(actual.frecuencia)}</td></tr>
       <tr><th>Tipo de equipo</th><td>${escapeHtml(actual.tipoEquipo)}</td></tr>
       <tr><th>Fecha mantención</th><td>${escapeHtml(actual.fechaMantencion)}</td></tr>
-      <tr><th>Próxima atención</th><td>${escapeHtml(actual.proximaAtencion)}</td></tr>
       <tr><th>Correos alerta</th><td>${escapeHtml(actual.correosAlerta)}</td></tr>
       <tr><th>Observaciones</th><td>${escapeHtml(actual.observaciones)}</td></tr>
       <tr><th>Activo</th><td>${escapeHtml(actual.activo)}</td></tr>
@@ -1167,7 +1144,6 @@ async function viewEquipment(id) {
     <th>Frecuencia</th>
     <th>Tipo</th>
     <th>Fecha mantención</th>
-    <th>Próxima atención</th>
     <th>Correos alerta</th>
     <th>Observaciones</th>
     <th>Activo</th>
@@ -1197,7 +1173,6 @@ async function viewEquipment(id) {
   <td>${escapeHtml(item.frecuencia)}</td>
   <td>${escapeHtml(item.tipoEquipo)}</td>
   <td>${escapeHtml(item.fechaMantencion)}</td>
-  <td>${escapeHtml(item.proximaAtencion)}</td>
   <td>${escapeHtml(item.correosAlerta)}</td>
   <td>${escapeHtml(item.observaciones)}</td>
   <td>${escapeHtml(item.activo)}</td>
@@ -1238,9 +1213,6 @@ function editEquipment(id) {
   document.getElementById('equipmentType').value = normalizeText(item.tipoEquipo || 'critico');
   document.getElementById('maintenanceDate').value = toISODate(item.fechaMantencion);
 
-  const parts = (item.proximaAtencion || '').split('/');
-  document.getElementById('nextAttentionMonth').value = parts[0] || '';
-  document.getElementById('nextAttentionYear').value = parts[1] || '';
   setAlertEmailsValue(item.correosAlerta || '');
   document.getElementById('equipmentNotes').value = item.observaciones || '';
   document.getElementById('formError').classList.add('hidden');
@@ -1295,9 +1267,6 @@ async function restoreEquipo(id) {
   errorEl.classList.remove('hidden');
   return;
 }
-      const mes = document.getElementById('nextAttentionMonth').value;
-      const anio = document.getElementById('nextAttentionYear').value.trim();
-      const proximaAtencion = `${mes}/${anio}`;
 
       const payload = {
         'ID': id,
@@ -1309,7 +1278,6 @@ async function restoreEquipo(id) {
         'Frecuencia': document.getElementById('equipmentFrequency').value.trim(),
         'Tipo de equipo': document.getElementById('equipmentType').value,
         'Fecha mantención': document.getElementById('maintenanceDate').value,
-        'Próxima atención': proximaAtencion,
         'Correos alerta': getAlertEmailsValue(),
         'Observaciones': document.getElementById('equipmentNotes').value.trim()
       };
@@ -1465,6 +1433,12 @@ function setAlertEmailsValue(text) {
 
   correos.forEach(correo => addAlertEmailInput(correo));
 }
+    document.addEventListener('DOMContentLoaded', function () {
+  document.getElementById('equipmentFrequency').addEventListener('change', function () {
+    document.getElementById('customFrequencyContainer').style.display =
+      this.value === 'custom' ? 'grid' : 'none';
+  });
+});
   </script>
   <div id="uploadModalBackdrop" class="modal-backdrop hidden">
   <div class="modal" style="max-width:700px;">
