@@ -295,7 +295,7 @@
   <select id="sortFilter" onchange="renderEquipmentTable()">
     <option value="nombreAsc">Ordenar por nombre</option>
     <option value="estado">Ordenar por semáforo</option>
-    <option value="proxima">Ordenar por próxima atención</option>
+    <option value="proxima">Ordenar por próxima mantención</option>
   </select>
 <button type="button" class="btn btn-primary admin-only" onclick="openNewEquipmentModal(); return false;">
   + Nuevo equipo
@@ -328,7 +328,7 @@
     <select id="sortFilterPrimordial" onchange="renderEquipmentTable()">
       <option value="nombreAsc">Ordenar por nombre</option>
       <option value="estado">Ordenar por semáforo</option>
-      <option value="proxima">Ordenar por próxima atención</option>
+      <option value="proxima">Ordenar por próxima mantención</option>
     </select>
     <button type="button" class="btn btn-primary admin-only" onclick="openNewEquipmentModal(); return false;">
   Nuevo equipo
@@ -362,7 +362,7 @@
           <select id="sortFilterGeneral" onchange="renderEquipmentTable()">
             <option value="nombreAsc">Ordenar por nombre</option>
             <option value="estado">Ordenar por semáforo</option>
-            <option value="proxima">Ordenar por próxima atención</option>
+            <option value="proxima">Ordenar por próxima mantención</option>
           </select>
           <button type="button" class="btn btn-primary admin-only" onclick="openNewEquipmentModal(); return false;">
   + Nuevo equipo
@@ -874,8 +874,7 @@ const tieneArchivos = item.archivos && item.archivos.trim() !== '';
     <td>${escapeHtml(item.responsable)}</td>
     <td>${escapeHtml(tipoTexto)}</td>
     <td>${escapeHtml(item.fechaMantencion)}</td>
-    <td>${escapeHtml(item.primerDiaHabil)}</td>
-    <td>${escapeHtml(item.ultimoDiaHabil)}</td>
+<td>${calcularProximaMantencionTexto(item)}</td>
     <td><span class="status-badge ${badgeClass}">${escapeHtml(item.estadoTexto)}</span></td>
 <td>
   <div class="row-actions">
@@ -1210,11 +1209,11 @@ function editEquipment(id) {
   document.getElementById('equipmentLocation').value = item.ubicacion || '';
   document.getElementById('equipmentResponsible').value = item.responsable || '';
   document.getElementById('equipmentProvider').value = item.empresaOTecnico || '';
-  document.getElementById('equipmentFrequency').value = item.frecuencia || 'Mensual';
+  document.getElementById('equipmentFrequency').value = item.frecuencia || '1';
   document.getElementById('equipmentFrequency').dispatchEvent(new Event('change'));
   document.getElementById('equipmentType').value = normalizeText(item.tipoEquipo || 'critico');
   document.getElementById('maintenanceDate').value = toISODate(item.fechaMantencion);
-
+  
   setAlertEmailsValue(item.correosAlerta || '');
   document.getElementById('equipmentNotes').value = item.observaciones || '';
   document.getElementById('formError').classList.add('hidden');
