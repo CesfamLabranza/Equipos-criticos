@@ -291,7 +291,7 @@
 
       <section id="equiposView" class="panel hidden">
         <div class="toolbar">
-  <input type="text" id="searchInput" placeholder="Buscar por nombre, categoría, ubicación o responsable" oninput="renderEquipmentTable()" />
+  <input type="text" id="searchInput" placeholder="Buscar por nombre, ubicación o responsable" oninput="renderEquipmentTable()" />
   <select id="sortFilter" onchange="renderEquipmentTable()">
     <option value="nombreAsc">Ordenar por nombre</option>
     <option value="estado">Ordenar por semáforo</option>
@@ -324,7 +324,7 @@
 
 <section id="equiposPrimordialesView" class="panel hidden">
   <div class="toolbar">
-    <input type="text" id="searchInputPrimordial" placeholder="Buscar por nombre, categoría, ubicación o responsable" oninput="renderEquipmentTable()" />
+    <input type="text" id="searchInputPrimordial" placeholder="Buscar por nombre, ubicación o responsable" oninput="renderEquipmentTable()" />
     <select id="sortFilterPrimordial" onchange="renderEquipmentTable()">
       <option value="nombreAsc">Ordenar por nombre</option>
       <option value="estado">Ordenar por semáforo</option>
@@ -358,7 +358,7 @@
       
       <section id="equiposGeneralesView" class="panel hidden">
         <div class="toolbar">
-          <input type="text" id="searchInputGeneral" placeholder="Buscar por nombre, categoría, ubicación o responsable" oninput="renderEquipmentTable()" />
+          <input type="text" id="searchInputGeneral" placeholder="Buscar por nombre, ubicación o responsable" oninput="renderEquipmentTable()" />
           <select id="sortFilterGeneral" onchange="renderEquipmentTable()">
             <option value="nombreAsc">Ordenar por nombre</option>
             <option value="estado">Ordenar por semáforo</option>
@@ -850,15 +850,17 @@ function renderEquipmentTable() {
   if (!tbody) return;
 
   if (!items.length) {
-    tbody.innerHTML = `<tr><td colspan="12">No hay equipos para mostrar.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="9">No hay equipos para mostrar.</td></tr>`;
     return;
   }
 
   tbody.innerHTML = items.map(item => {
-    const badgeClass =
-      item.estado === 'verde' ? 'status-green' :
-      item.estado === 'amarillo' ? 'status-yellow' :
-      'status-red';
+const estadoCalc = calcularEstadoMantencion(item);
+
+const badgeClass =
+  estadoCalc.estado === 'verde' ? 'status-green' :
+  estadoCalc.estado === 'amarillo' ? 'status-yellow' :
+  'status-red';
 
     const tipoNormalizado = normalizeText(item.tipoEquipo || 'critico');
     const tipoTexto =
@@ -875,7 +877,7 @@ const tieneArchivos = item.archivos && item.archivos.trim() !== '';
     <td>${escapeHtml(tipoTexto)}</td>
     <td>${escapeHtml(item.fechaMantencion)}</td>
 <td>${calcularProximaMantencionTexto(item)}</td>
-    <td><span class="status-badge ${badgeClass}">${escapeHtml(item.estadoTexto)}</span></td>
+    <td><span class="status-badge ${badgeClass}">${escapeHtml(estadoCalc.texto)}</span></td>
 <td>
   <div class="row-actions">
     <button type="button" class="view-btn" onclick="viewEquipment('${item.id}'); return false;">Ver</button>
@@ -896,7 +898,85 @@ ${isAdmin() ? `<button type="button" class="delete-btn full-action" onclick="del
 `;
   }).join('');
 }
+function calcularProximaMantencion(item) {
+  const fechaBase = parseFechaMantencion(item.fechaMantencion);
+  if (!fechaBase) return null;
 
+  const frecuencia = String(item.frecuencia || '1').trim();
+
+  const proxima = new Date(fechaBase);
+
+  if (frecuencia === 'custom') {
+    const valor = parseInt(item.customFrequencyValue || item.frecuenciaValor || 0, 10);
+    const unidad = String(item.customFrequencyUnit || item.frecuenciaUnidad || 'meses').trim();
+
+    if (!valor) return null;
+
+    if (unidad === 'dias') {
+      proxima.setDate(proxima.getDate() + valor);
+    } else {
+      proxima.setMonth(proxima.getMonth() + valor);
+    }
+  } else {
+    proxima.setMonth(proxima.getMonth() + parseInt(frecuencia, 10));
+  }
+
+  return proxima;
+}
+
+function calcularProximaMantencionTexto(item) {
+  const fecha = calcularProximaMantencion(item);
+  if (!fecha) return '';
+
+  return fecha.toLocaleDateString('es-CL', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric'
+  });
+}
+
+function calcularEstadoMantencion(item) {
+  const proxima = calcularProximaMantencion(item);
+
+  if (!proxima) {
+    return { estado: 'verde', texto: 'Sin cálculo' };
+  }
+
+  const hoy = new Date();
+  hoy.setHours(0, 0, 0, 0);
+  proxima.setHours(0, 0, 0, 0);
+
+  const limiteRojo = new Date(proxima);
+  limiteRojo.setMonth(limiteRojo.getMonth() + 1);
+
+  if (hoy < proxima) {
+    return { estado: 'verde', texto: 'Vigente' };
+  }
+
+  if (hoy >= proxima && hoy <= limiteRojo) {
+    return { estado: 'amarillo', texto: 'Pendiente mantención' };
+  }
+
+  return { estado: 'rojo', texto: 'Vencido' };
+}
+
+function parseFechaMantencion(valor) {
+  if (!valor) return null;
+
+  const texto = String(valor).trim();
+
+  if (/^\d{4}-\d{2}-\d{2}$/.test(texto)) {
+    return new Date(texto + 'T00:00:00');
+  }
+
+  if (/^\d{2}-\d{2}-\d{4}$/.test(texto)) {
+    const partes = texto.split('-');
+    return new Date(`${partes[2]}-${partes[1]}-${partes[0]}T00:00:00`);
+  }
+
+  const fecha = new Date(texto);
+  return isNaN(fecha) ? null : fecha;
+}
 function renderHistory() {
   const container = document.getElementById('historyList');
 
@@ -1114,7 +1194,6 @@ async function viewEquipment(id) {
     <tbody>
       <tr><th>ID</th><td>${escapeHtml(actual.id)}</td></tr>
       <tr><th>Nombre del equipo</th><td>${escapeHtml(actual.nombre)}</td></tr>
-      <tr><th>Categoría</th><td>${escapeHtml(actual.categoria)}</td></tr>
       <tr><th>Ubicación</th><td>${escapeHtml(actual.ubicacion)}</td></tr>
       <tr><th>Responsable</th><td>${escapeHtml(actual.responsable)}</td></tr>
       <tr><th>Empresa o técnico</th><td>${escapeHtml(actual.empresaOTecnico)}</td></tr>
@@ -1285,6 +1364,8 @@ if (document.getElementById('equipmentFrequency').value === 'custom') {
         'Responsable': document.getElementById('equipmentResponsible').value.trim(),
         'Empresa o técnico': document.getElementById('equipmentProvider').value.trim(),
         'Frecuencia': document.getElementById('equipmentFrequency').value.trim(),
+'Frecuencia valor': document.getElementById('customFrequencyValue')?.value || '',
+'Frecuencia unidad': document.getElementById('customFrequencyUnit')?.value || '',
         'Tipo de equipo': document.getElementById('equipmentType').value,
         'Fecha mantención': document.getElementById('maintenanceDate').value,
         'Correos alerta': getAlertEmailsValue(),
