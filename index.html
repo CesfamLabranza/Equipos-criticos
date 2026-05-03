@@ -313,7 +313,7 @@
   <th>Fecha mantención</th>
 <th>Próxima mantención</th>
 <th>Estado</th>
-  <th>Estado</th>
+
   <th>Acciones</th>
 </tr>
             </thead>
@@ -347,7 +347,7 @@
   <th>Fecha mantención</th>
 <th>Próxima mantención</th>
 <th>Estado</th>
-  <th>Estado</th>
+
   <th>Acciones</th>
 </tr>
       </thead>
@@ -381,7 +381,7 @@
   <th>Fecha mantención</th>
 <th>Próxima mantención</th>
 <th>Estado</th>
-  <th>Estado</th>
+
   <th>Acciones</th>
 </tr>
             </thead>
@@ -437,7 +437,8 @@
   <option value="custom">Otra</option>
 </select>
           </div>
-<div id="customFrequencyContainer" style="display:none; margin-top:10px;">
+<div id="customFrequencyContainer" 
+     style="display:none; margin-top:10px; grid-template-columns: 1fr 1fr; gap:10px;">
   <input type="number" id="customFrequencyValue" placeholder="Cantidad" />
 
   <select id="customFrequencyUnit">
@@ -1210,6 +1211,7 @@ function editEquipment(id) {
   document.getElementById('equipmentResponsible').value = item.responsable || '';
   document.getElementById('equipmentProvider').value = item.empresaOTecnico || '';
   document.getElementById('equipmentFrequency').value = item.frecuencia || 'Mensual';
+  document.getElementById('equipmentFrequency').dispatchEvent(new Event('change'));
   document.getElementById('equipmentType').value = normalizeText(item.tipoEquipo || 'critico');
   document.getElementById('maintenanceDate').value = toISODate(item.fechaMantencion);
 
@@ -1267,7 +1269,15 @@ async function restoreEquipo(id) {
   errorEl.classList.remove('hidden');
   return;
 }
-
+if (document.getElementById('equipmentFrequency').value === 'custom') {
+  const val = document.getElementById('customFrequencyValue').value;
+  if (!val) {
+    const errorEl = document.getElementById('formError');
+    errorEl.textContent = 'Debe ingresar la frecuencia personalizada.';
+    errorEl.classList.remove('hidden');
+    return;
+  }
+}
       const payload = {
         'ID': id,
         'Nombre del equipo': document.getElementById('equipmentName').value.trim(),
