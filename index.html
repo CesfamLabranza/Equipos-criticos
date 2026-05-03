@@ -933,15 +933,17 @@ function renderHistory() {
       <div style="margin-top:8px;color:#6b7280;">
         ${escapeHtml(item.fecha)} | ${escapeHtml(item.usuario)}
       </div>
-      ${
-        item.detalle && item.detalle.toLowerCase().includes('eliminó')
-        ? `<button 
-             style="margin-top:10px;background:#16a34a;color:#fff;border:none;padding:8px 12px;border-radius:8px;cursor:pointer;"
-             onclick="restoreEquipo('${extraerId(item.detalle)}')">
-             Restaurar
-           </button>`
-        : ''
-      }
+${
+  item.detalle &&
+  item.detalle.toLowerCase().includes('eliminó') &&
+  !equipments.some(e => String(e.id) === String(extraerId(item.detalle)))
+  ? `<button 
+       style="margin-top:10px;background:#16a34a;color:#fff;border:none;padding:8px 12px;border-radius:8px;cursor:pointer;"
+       onclick="restoreEquipo('${extraerId(item.detalle)}')">
+       Restaurar
+     </button>`
+  : ''
+}
     </div>
   `).join('');
 }
