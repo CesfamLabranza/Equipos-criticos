@@ -419,11 +419,6 @@
           </div>
 
           <div>
-            <label>Categoría</label>
-            <input type="text" id="equipmentCategory" required />
-          </div>
-
-          <div>
             <label>Ubicación</label>
             <input type="text" id="equipmentLocation" required />
           </div>
@@ -485,10 +480,20 @@
             </div>
           </div>
 
-          <div style="grid-column:1/-1;">
-            <label>Correos alerta</label>
-            <textarea id="alertEmails"></textarea>
-          </div>
+<div style="grid-column:1/-1;">
+  <label>Correos alerta</label>
+
+  <div id="alertEmailsContainer" style="display:flex;flex-direction:column;gap:8px;margin-top:6px;">
+  </div>
+
+  <button 
+    type="button" 
+    class="btn btn-secondary" 
+    style="margin-top:8px;"
+    onclick="addAlertEmailInput()">
+    + Agregar correo
+  </button>
+</div>
 
           <div style="grid-column:1/-1;">
             <label>Observaciones</label>
@@ -993,6 +998,8 @@ function openNewEquipmentModal() {
   document.getElementById('equipmentId').readOnly = false;
 
   document.getElementById('equipmentType').value = 'critico';
+  setAlertEmailsValue('');
+  
   document.getElementById('formError').classList.add('hidden');
 
   const modal = document.getElementById('modalBackdrop');
@@ -1230,7 +1237,6 @@ function editEquipment(id) {
   document.getElementById('equipmentId').value = item.id;
   document.getElementById('equipmentId').readOnly = true;
   document.getElementById('equipmentName').value = item.nombre || '';
-  document.getElementById('equipmentCategory').value = item.categoria || '';
   document.getElementById('equipmentLocation').value = item.ubicacion || '';
   document.getElementById('equipmentResponsible').value = item.responsable || '';
   document.getElementById('equipmentProvider').value = item.empresaOTecnico || '';
@@ -1241,7 +1247,7 @@ function editEquipment(id) {
   const parts = (item.proximaAtencion || '').split('/');
   document.getElementById('nextAttentionMonth').value = parts[0] || '';
   document.getElementById('nextAttentionYear').value = parts[1] || '';
-  document.getElementById('alertEmails').value = item.correosAlerta || '';
+  setAlertEmailsValue(item.correosAlerta || '');
   document.getElementById('equipmentNotes').value = item.observaciones || '';
   document.getElementById('formError').classList.add('hidden');
 
@@ -1302,7 +1308,7 @@ async function restoreEquipo(id) {
       const payload = {
         'ID': id,
         'Nombre del equipo': document.getElementById('equipmentName').value.trim(),
-        'Categoría': document.getElementById('equipmentCategory').value.trim(),
+        'Categoría': '',
         'Ubicación': document.getElementById('equipmentLocation').value.trim(),
         'Responsable': document.getElementById('equipmentResponsible').value.trim(),
         'Empresa o técnico': document.getElementById('equipmentProvider').value.trim(),
@@ -1310,7 +1316,7 @@ async function restoreEquipo(id) {
         'Tipo de equipo': document.getElementById('equipmentType').value,
         'Fecha mantención': document.getElementById('maintenanceDate').value,
         'Próxima atención': proximaAtencion,
-        'Correos alerta': document.getElementById('alertEmails').value.trim(),
+        'Correos alerta': getAlertEmailsValue(),
         'Observaciones': document.getElementById('equipmentNotes').value.trim()
       };
 
@@ -1415,6 +1421,55 @@ function openMovilesTab() {
   const url = `https://cesfamlabranza.github.io/programacion-moviles-cesfam/?user=${userData}`;
   console.log('URL móviles:', url);
   window.open(url, '_blank');
+}
+    function addAlertEmailInput(value = '') {
+  const container = document.getElementById('alertEmailsContainer');
+
+  const row = document.createElement('div');
+  row.style.display = 'grid';
+  row.style.gridTemplateColumns = '1fr auto';
+  row.style.gap = '8px';
+
+  row.innerHTML = `
+    <input 
+      type="email" 
+      class="alert-email-input" 
+      placeholder="correo@dominio.cl"
+      value="${escapeHtml(value)}"
+    />
+    <button 
+      type="button" 
+      class="btn btn-danger" 
+      onclick="this.parentElement.remove()">
+      X
+    </button>
+  `;
+
+  container.appendChild(row);
+}
+
+function getAlertEmailsValue() {
+  return Array.from(document.querySelectorAll('.alert-email-input'))
+    .map(input => input.value.trim())
+    .filter(Boolean)
+    .join(', ');
+}
+
+function setAlertEmailsValue(text) {
+  const container = document.getElementById('alertEmailsContainer');
+  container.innerHTML = '';
+
+  const correos = String(text || '')
+    .split(',')
+    .map(x => x.trim())
+    .filter(Boolean);
+
+  if (!correos.length) {
+    addAlertEmailInput();
+    return;
+  }
+
+  correos.forEach(correo => addAlertEmailInput(correo));
 }
   </script>
   <div id="uploadModalBackdrop" class="modal-backdrop hidden">
