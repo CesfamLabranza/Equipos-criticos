@@ -307,7 +307,6 @@
               <tr>
   <th>ID</th>
   <th>Equipo</th>
-  <th>Categoría</th>
   <th>Ubicación</th>
   <th>Responsable</th>
   <th>Tipo</th>
@@ -343,7 +342,6 @@
         <tr>
   <th>ID</th>
   <th>Equipo</th>
-  <th>Categoría</th>
   <th>Ubicación</th>
   <th>Responsable</th>
   <th>Tipo</th>
@@ -379,7 +377,6 @@
               <tr>
   <th>ID</th>
   <th>Equipo</th>
-  <th>Categoría</th>
   <th>Ubicación</th>
   <th>Responsable</th>
   <th>Tipo</th>
@@ -852,7 +849,7 @@ function renderEquipmentTable() {
       (activeView === 'equiposPrimordiales' && tipo === 'primordial') ||
       (activeView === 'equiposGenerales' && tipo === 'general');
 
-    const text = normalizeText(`${e.nombre} ${e.categoria} ${e.ubicacion} ${e.responsable}`);
+    const text = normalizeText(`${e.nombre} ${e.ubicacion} ${e.responsable}`);
     const matchesSearch = !search || text.includes(search);
     const matchesStatus = statusFilter === 'todos' || e.estado === statusFilter;
 
@@ -893,7 +890,6 @@ const tieneArchivos = item.archivos && item.archivos.trim() !== '';
   <tr>
     <td>${escapeHtml(item.id)}</td>
     <td><strong>${escapeHtml(item.nombre)}</strong></td>
-    <td>${escapeHtml(item.categoria)}</td>
     <td>${escapeHtml(item.ubicacion)}</td>
     <td>${escapeHtml(item.responsable)}</td>
     <td>${escapeHtml(tipoTexto)}</td>
@@ -1165,7 +1161,6 @@ async function viewEquipment(id) {
     <th>Usuario</th>
     <th>ID</th>
     <th>Nombre</th>
-    <th>Categoría</th>
     <th>Ubicación</th>
     <th>Responsable</th>
     <th>Empresa o técnico</th>
@@ -1196,7 +1191,6 @@ async function viewEquipment(id) {
   <td>${escapeHtml(item.usuario)}</td>
   <td>${escapeHtml(item.id)}</td>
   <td>${escapeHtml(item.nombre)}</td>
-  <td>${escapeHtml(item.categoria)}</td>
   <td>${escapeHtml(item.ubicacion)}</td>
   <td>${escapeHtml(item.responsable)}</td>
   <td>${escapeHtml(item.empresaOTecnico)}</td>
